@@ -14,7 +14,7 @@ c --- 'thktop' = maximum thickness of top layer (m)
 c
 c --- slip=+1  for free-slip boundary cond., slip=-1  for non-slip cond.
 c --- 'thkbot' = thickness of bottom boundary layer (m)
-      data slip/-1./,thkbot/10./
+      data slip/1./,thkbot/10./
 c
 c --- weights for time smoothing
 ccc      data wuv1,wuv2/.5,.25/

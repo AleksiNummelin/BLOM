@@ -262,7 +262,7 @@ c
         ny=nyear
         nm=nmonth
         nd=nday
-        if   (expcnf.eq.'ben02clim') then
+        if   (expcnf.eq.'ben02clim'.or.expcnf.eq.'channel') then
           call pstdat(ny,nm,nd,nint(diagfq))
           if     (mod(nint(diagfq),360).eq.0) then
             write(fname,'(4a,i4.4,a)')
@@ -369,6 +369,10 @@ c --- diagnostics
      .                path(1:path_len)//'section_index.dat','!'
         call xchalt('(diaini)')
                stop '(diaini)'
+      endif
+c
+      if (mnproc.eq.1) then
+          write (lp,*) 'Found regions and sections files'
       endif
 c
       nphyh2d=0
@@ -3193,17 +3197,17 @@ c
         if (mnproc.eq.1) then
 c
 c --- --- Read ocean masks from metraoceans.dat 
-          open(nfu,file=path(1:path_len)//'mertraoceans.dat',
-     .         status='old')
-          read(nfu,'(2i6)') i,j
-          if (i.ne.itdm.or.j.ne.jtdm) then
-            write(lp,*) 'wrong dimensions in mertraoceans.dat'
-            call xchalt('(diamer)')
-                   stop '(diamer)'
-          endif
-          write(c20,*) '(',jtdm,'i1)'
-          read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
-          close(nfu)
+c          open(nfu,file=path(1:path_len)//'mertraoceans.dat',
+c     .         status='old')
+c          read(nfu,'(2i6)') i,j
+c          if (i.ne.itdm.or.j.ne.jtdm) then
+c            write(lp,*) 'wrong dimensions in mertraoceans.dat'
+c            call xchalt('(diamer)')
+c                   stop '(diamer)'
+c          endif
+c          write(c20,*) '(',jtdm,'i1)'
+c          read(nfu,c20) ((oflg(i,j),j=1,jtdm),i=1,itdm)
+c          close(nfu)
 c
 c --- --- Read ocean region flags from ocean_regions.nc
           call ncerro(nf90_open(path(1:path_len)//'ocean_regions.nc',

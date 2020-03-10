@@ -6,6 +6,7 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mod_ben02, only: getfrc_ben02clim, getfrc_ben02syn
+      use mod_channel, only: getfrc_channel
 c
       implicit none
 c
@@ -17,6 +18,8 @@ c
         call getfrc_ben02clim
       elseif (expcnf.eq.'ben02syn') then
         call getfrc_ben02syn
+      elseif (expcnf.eq.'channel') then
+        call getfrc_channel
       elseif (expcnf.eq.'isomip1') then
 c       call getfrc_isomip1
       elseif (expcnf.eq.'isomip2') then
