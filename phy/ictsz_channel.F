@@ -12,7 +12,7 @@ c
 c
 #include "common_blocks.h"
 c
-      intrinsic random_seed, random_number, atan, sin, cos
+      intrinsic random_seed, random_number, atan, sin, tanh, cos
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm+1) :: z
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: dz
@@ -38,17 +38,32 @@ c --- temperature is then inverted below
 c
 c
 c 
-      sigmr0(1)=34.59
-      sigmr0(2)=34.59
+      sigmr0(1)=33.2133 !34.59 cases _01-_03
+      sigmr0(2)=33.2133 !34.59
       dz0(1)=10.
       dz0(2)=10.
       do k=3,kk
-c ---    define a sigma profie and invert temperature 
-         sigmr0(k)=sigmr0(k-1) + 0.05*k*(1.+cos(pi*(k-1.)/kk))/kk
+c ---    define a sigma profie and invert temperature
+c ---    cases _01-_03 
+c         sigmr0(k)=sigmr0(k-1) + 0.05*k*(1.+cos(pi*(k-1.)/kk))/kk
+c        cases _04
+c         sigmr0(k)=sigmr0(k-1) + 5.e-6+0.5*(1.-tanh(1.5*pi*(k-1)/kk))
+c ---    cases _05-07
+c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.5*(1.-tanh(1.5*pi*(k-1)/kk))
+c ---    cases _08
+c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.4*(1.-tanh(1.5*pi*(k-1)/kk))
+c ---    cases _09
+c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.3*(1.-tanh(1.5*pi*(k-1)/kk))
+c ---    cases _10
+c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.2*(1.-tanh(1.5*pi*(k-1)/kk))
+c ---    cases _11
+         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.1*(1.-tanh(1.5*pi*(k-1)/kk))
 c ---    define a temperature profile and invert sigma
 c         temp0(k)=temp0(k-1) + 0.2*(k/kk)*(1.+cos(PI_8*(k-1)/kk))
 c         sigmr0(k)=sig(temp0(k),S0)
-         dz0(k)=k*exp(k/(0.5*kk))
+c ---    cases _01-_03
+c         dz0(k)=10.+0.3*k*exp(k/(0.5*kk))
+         dz0(k)=50.*tanh(1.5*pi*(k-1)/kk)
       enddo
 c
 c

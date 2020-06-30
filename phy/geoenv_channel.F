@@ -17,8 +17,8 @@ c
       integer i,j,l
       real :: r
 c      real, parameter :: PI0=4.*atan(1.0)
-      real, parameter :: cwidth=75.E5  !slope width
-      real, parameter :: swidth=175.E5 !slope mid-point distance 
+      real, parameter :: cwidth=75.E5 !slope width
+      real, parameter :: swidth=150.E5 !slope mid-point distance 
 c
 c
       call random_seed()

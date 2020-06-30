@@ -60,7 +60,7 @@ c
           rfi(i,j)=0.       ! runoff ice
           fmltfz(i,j)=0.    ! fresh water flux due to melting/freezing
           sfl(i,j)=0.       ! salt flux
-          ustarw(i,j)=0.007 ! friction velocity for open water
+          ustarw(i,j)=0.005 ! friction velocity for open water
           slp(i,j)=1000.    ! sea level pressure
           abswnd(i,j)=0.    ! wind speed at measurement height -zu-
           albw(i,j)=0.      ! daily mean open water albedo
