@@ -32,6 +32,7 @@ c
       if     (expcnf.eq.'cesm'.or.
      .        expcnf.eq.'ben02clim'.or.expcnf.eq.'ben02syn') then
         call read_twedon
+      elseif (expcnf.eq.'channel') then
       elseif (expcnf.eq.'isomip1') then
       elseif (expcnf.eq.'isomip2') then
       else

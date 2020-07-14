@@ -40,7 +40,7 @@ c
 #include "common_seaice.h"
 c
       integer i,j,n
-      character(len=80), dimension(4) :: rstdate_str
+      character(len=256), dimension(4) :: rstdate_str
       character(len=256) :: rstfnm,fnm
       character(len=2) :: c2
       character(len=5) :: c5p,c5u,c5v,c5q
