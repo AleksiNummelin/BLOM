@@ -275,7 +275,8 @@ c
 c --- Correction for the virtual salt flux [kg m-2 s-1]
       sflxc=(-sref*totwfl*1.e-3-totsfl)/area
       if (mnproc.eq.1) then
-        write (lp,*) 'thermf: totsfl/area,sflxc',totsfl/area,sflxc
+        write (lp,*) 'thermf_channel: totsfl/area,sflxc',
+     .               totsfl/area,sflxc
       endif
 c
 c --- Apply the virtual salt flux correction and the compute the total

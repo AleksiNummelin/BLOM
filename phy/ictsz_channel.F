@@ -18,31 +18,51 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: dz
       real, dimension(kdm) :: sigmr0
       real, dimension(kdm) :: dz0
+      real :: S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
 c      real, dimension(kdm) :: temp0
 c      
 c      real :: r
 c      real, parameter :: PI0=4.*atan(1.0)
-      real, parameter :: S0=35.
-      integer i,j,k,l
+c      real, parameter :: S0=35.
+      integer i,j,k,l,ios
+      logical :: fexist
       
       real sofsig,tofsig,sig,rho
       external sofsig,tofsig,sig,rho
+c
+      namelist /idlini/ S0,sig0,sig0dz,sigdz,sigscl,dztop,dzmax,dzscl
 c
       if (mnproc.eq.1) then
         write (lp,'(1a)') ' idealized initial conditions'
         call flush(lp)
       endif
 c
-c --- DEFINE IDEALIZED PROFILES OF sigmar and S and DZ
-c --- temperature is then inverted below
+c --- DEFINE IDEALIZED PROFILES OF sigmar and DZ
+c --- salinity is constant (S0) and temperature is then inverted below
 c
-c
-c 
-      sigmr0(1)=33.2133 !34.59 cases _01-_03
-      sigmr0(2)=33.2133 !34.59
-      dz0(1)=10.
-      dz0(2)=10.
+c --- read parameters from the namelist     
+      inquire(file='limits',exist=fexist)
+      if (fexist) then
+          open (unit=nfu,file='limits',status='old',action='read')
+      else
+          write (lp,*) 'ictsz_channel: could not find namelist file!'
+          call xchalt('(ictsz_channel)')
+          stop '(ictsz_channel)'
+      endif
+c --- 
+      read (unit=nfu,nml=idlini,iostat=ios)
+      close (unit=nfu)
+      call xcbcst(ios)
+c     
+c ---     
+      sigmr0(1)=sig0 !33.2133 !34.59 cases _01-_03
+      sigmr0(2)=sig0 !33.2133 !34.59
+      dz0(1)=dztop !10.
+      dz0(2)=dztop !10.
       do k=3,kk
+         sigmr0(k)=sigmr0(k-1) + sig0dz + sigdz*
+     .   (1.-tanh(sigscl*pi*(k-1)/kk))
+         dz0(k)=dzmax*tanh(dzscl*pi*(k-1)/kk)
 c ---    define a sigma profie and invert temperature
 c ---    cases _01-_03 
 c         sigmr0(k)=sigmr0(k-1) + 0.05*k*(1.+cos(pi*(k-1.)/kk))/kk
@@ -57,13 +77,13 @@ c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.3*(1.-tanh(1.5*pi*(k-1)/kk))
 c ---    cases _10
 c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.2*(1.-tanh(1.5*pi*(k-1)/kk))
 c ---    cases _11
-         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.1*(1.-tanh(1.5*pi*(k-1)/kk))
+c         sigmr0(k)=sigmr0(k-1) + 5.e-4+0.1*(1.-tanh(1.5*pi*(k-1)/kk))
 c ---    define a temperature profile and invert sigma
 c         temp0(k)=temp0(k-1) + 0.2*(k/kk)*(1.+cos(PI_8*(k-1)/kk))
 c         sigmr0(k)=sig(temp0(k),S0)
 c ---    cases _01-_03
 c         dz0(k)=10.+0.3*k*exp(k/(0.5*kk))
-         dz0(k)=50.*tanh(1.5*pi*(k-1)/kk)
+c         dz0(k)=50.*tanh(1.5*pi*(k-1)/kk)
       enddo
 c
 c

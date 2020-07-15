@@ -54,8 +54,8 @@ c
       enddo
 c
 c relaxation timescales
-      trxday=5.
-      srxday=5.
+      trxday=0.
+      srxday=0.
 c
       return
       end

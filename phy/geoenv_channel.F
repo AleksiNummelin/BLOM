@@ -31,15 +31,45 @@ c
 #include "common_blocks.h"
 #include "common_geo.h"
 c
-      intrinsic random_seed, random_number,atan,tanh
+      intrinsic random_seed, random_number,tanh,sin
 
-      integer i,j,l
+      integer i,j,l,ios
       real :: r
+      real :: sldepth,sfdepth,rdepth,acorru,wlcorru,cwidth,swidth,scxy,
+     .        corio0,beta0
+      logical :: fexist
 c      real, parameter :: PI0=4.*atan(1.0)
-      real, parameter :: cwidth=75.E5 !slope width
-      real, parameter :: swidth=150.E5 !slope mid-point distance 
+c      real, parameter :: cwidth=75.E5 !slope width
+c      real, parameter :: swidth=150.E5 !slope mid-point distance 
 c
+      namelist /idlgeo/ sldepth,sfdepth,rdepth,acorru,wlcorru,cwidth,
+     .                  swidth,scxy,corio0,beta0
+
+      inquire(file='limits',exist=fexist)
+      if (fexist) then
+          open (unit=nfu,file='limits',status='old',action='read')
+      else
+          write (lp,*) 'geoenv_channel: could not find namelist file!'
+          call xchalt('(geoenv_channel)')
+          stop '(geoenv_channel)'
+      endif
 c
+      read (unit=nfu,nml=idlgeo,iostat=ios)
+      close (unit=nfu)
+c
+c --- broadcast the namelist variables
+      call xcbcst(sldepth)
+      call xcbcst(sfdepth)
+      call xcbcst(rdepth)
+      call xcbcst(acorru)
+      call xcbcst(wlcorru)
+      call xcbcst(cwidth)
+      call xcbcst(swidth)
+      call xcbcst(scxy)
+      call xcbcst(corio0)
+      call xcbcst(beta0)
+c
+c --- initialize the random numbe generator
       call random_seed()
 
 c --- initialize depth to 0 everywhere     
@@ -65,30 +95,31 @@ c --- the latitudes need to be set, but actually the values don't matter it seem
       vclon=0.
       vclat=0.
 c --- these are the grid dimensions (in cm!)
-      scqx=2.e5
-      scqy=2.e5
-      scpx=2.e5
-      scpy=2.e5
-      scux=2.e5
-      scuy=2.e5
-      scvx=2.e5
-      scvy=2.e5
+      scqx=scxy !2.e5
+      scqy=scxy !2.e5
+      scpx=scxy !2.e5
+      scpy=scxy !2.e5
+      scux=scxy !2.e5
+      scuy=scxy !2.e5
+      scvx=scxy !2.e5
+      scvy=scxy !2.e5
 c --- square of the grid dimensions
       scq2=scqx*scqy
       scp2=scpx*scpy
       scu2=scux*scuy
       scv2=scvx*scvy
 c --- here we just set a f-plane (beta=0) 
-      angle=0.
-      corioq=1.e-4
-      coriop=1.e-4
-      betafp=0.
+c      angle=0.
+      corioq=corio0 !1.e-4
+      coriop=corio0 !1.e-4
+      betafp=beta0  !0.
+      angle=0. !we leave these hard coded - grid will be cartesian
       cosang=1.
       sinang=0.
 c
 c --- this is now a tanh slope that will have the same shape
 c --- independent of the grid size - i.e. depends on grid
-c --- dimensions
+c --- dimensions (no interpolation done though)
 c --- 
 c$OMP PARALLEL DO PRIVATE(i,r)
       do j=1,jj
@@ -98,14 +129,21 @@ c$OMP PARALLEL DO PRIVATE(i,r)
              call random_number(r)
              if ((scpy(i,j)*(j0+j)).lt.(swidth+cwidth)) then
                depths(i,j)=
-     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(j0+j)/
-     .         cwidth-(swidth/cwidth)*pi))
+     .         sfdepth+rdepth*r+0.5*sldepth*(1.+tanh(pi*
+     .         (scpy(i,j)*(j0+j)-swidth
+     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
+c     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(j0+j)/
+c     .         cwidth-(swidth/cwidth)*pi))
              elseif ((jtdm-(j0+j))*scpy(i,j).lt.(swidth+cwidth)) then
                depths(i,j)=
-     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(jtdm-(j0+j))/
-     .         cwidth-(swidth/cwidth)*pi))
+     .         sfdepth+rdepth*r+0.5*sldepth*(1.+tanh(pi*
+     .         (scpy(i,j)*(jtdm-(j0+j))-swidth
+     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
+c     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(jtdm-(j0+j))/
+c     .         cwidth-(swidth/cwidth)*pi))
              else
-               depths(i,j)=250.+2.e3+10.*r
+c               depths(i,j)=250.+2.e3+10.*r
+               depths(i,j)=sfdepth+rdepth*r+sldepth
              endif
           enddo
         endif

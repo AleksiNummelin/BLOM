@@ -52,9 +52,29 @@ c
 c
 c      intrinsic tanh
 c
-      integer i,j,l,k
+      integer i,j,l,k,ios
 c      real, parameter :: cwidth=75.e5
-      real, parameter :: ztx0=-0.05
+c      real, parameter :: ztx0=-0.05
+      real :: ztx0,mty0
+      logical :: fexist
+c      
+      namelist /idlfor/ ztx0,mty0
+c
+c --- READ NAMELIST FILE
+      inquire(file='limits',exist=fexist)
+      if (fexist) then
+          open (unit=nfu,file='limits',status='old',action='read')
+      else
+          write (lp,*) 'getfrc_channel: could not find namelist file!'
+          call xchalt('(getfrc_channel)')
+          stop '(getfrc_channel)'
+      endif
+c
+c --- READ AND BROADCAST
+      read (unit=nfu,nml=idlfor,iostat=ios)
+      close (unit=nfu)
+      call xcbcst(ztx0)
+      call xcbcst(mty0)
 
 c      call forfun_channel !not needed
 
@@ -128,7 +148,7 @@ c ---   --------------------------------------------------------
         enddo
         do l=1,isv(j)
         do i=max(1,ifv(j,l)),min(ii,ilv(j,l))
-          mty(i,j)=0.
+          mty(i,j)=mty0 !0.
         enddo
         enddo
       enddo
