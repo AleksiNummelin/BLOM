@@ -1,0 +1,61 @@
+# Compiled source #
+###################
+*/*.com
+*/*.class
+*/*.dll
+*/*.exe
+*/*.o
+*/*.so
+*/*.sh
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*/*.7z
+*/*.dmg
+*/*.gz
+*/*.iso
+*/*.jar
+*/*.rar
+*/*.tar
+*/*.zip
+
+# Data files #
+##############
+*/*.nc
+*/*.dat
+
+# Run #
+#######
+run/*
+!run/limits_channel
+
+# initial conditions #
+######################
+regions_and_indices/*
+#!regions_and_indices/make_region_and_index_files.py
+
+# bld #
+#######
+bld/channel/*
+!bld/channel/dimensions.F.1028.k53y512x208_betzy_normal
+!bld/channel/dimensions.F.512.k53y512x208_betzy_devel
+!bld/channel/dimensions.F.128.k53y512x208
+!bld/channel/dimensions.F.512.k53y512x208
+!bld/channel/dimensions.F.256.k53y512x208
+!bld/channel/dimensions.F.1.k53y512x208
+
+# Build directory #
+###################
+build/*
+build/Makefile
+
+# emacs changes #
+###################
+*~
+*/*~
+
+# specifics #
+#############
+phy/dimensions.F
