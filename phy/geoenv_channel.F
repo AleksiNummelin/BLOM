@@ -34,9 +34,11 @@ c
       intrinsic random_seed, random_number,tanh,sin
 
       integer i,j,l,ios
+      integer, parameter :: ncorru=10
       real :: r
-      real :: sldepth,sfdepth,rdepth,acorru,wlcorru,cwidth,swidth,scxy,
-     .        corio0,beta0
+      real :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy,corio0,beta0,
+     .        d_corru
+      real, dimension(ncorru) :: acorru=0.0,wlcorru=0.0
       logical :: fexist
 c      real, parameter :: PI0=4.*atan(1.0)
 c      real, parameter :: cwidth=75.E5 !slope width
@@ -128,17 +130,33 @@ c$OMP PARALLEL DO PRIVATE(i,r)
           do i=1,ii
              call random_number(r)
              if ((scpy(i,j)*(j0+j)).lt.(swidth+cwidth)) then
+               l=1
+               d_corru=0.0
+               do while (acorru(l).gt.0.0)
+                 d_corru=d_corru
+     .           +acorru(l)*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru(l))
+                 l=l+1
+               enddo
                depths(i,j)=
      .         sfdepth+rdepth*r+0.5*sldepth*(1.+tanh(pi*
      .         (scpy(i,j)*(j0+j)-swidth
-     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
+     .         -d_corru)/cwidth))
+c     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
 c     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(j0+j)/
 c     .         cwidth-(swidth/cwidth)*pi))
              elseif ((jtdm-(j0+j))*scpy(i,j).lt.(swidth+cwidth)) then
+               l=1
+               d_corru=0.0
+               do while (acorru(l).gt.0.0)
+                 d_corru=d_corru
+     .           +acorru(l)*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru(l))
+                 l=l+1
+               enddo
                depths(i,j)=
      .         sfdepth+rdepth*r+0.5*sldepth*(1.+tanh(pi*
      .         (scpy(i,j)*(jtdm-(j0+j))-swidth
-     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
+     .         -d_corru)/cwidth))
+c     .         -acorru*sin(2.*pi*scpx(i,j)*(i0+i)/wlcorru))/cwidth))
 c     .         250.+10.*r+1.e3*(1+tanh(pi*scpy(i,j)*(jtdm-(j0+j))/
 c     .         cwidth-(swidth/cwidth)*pi))
              else
