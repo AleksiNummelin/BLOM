@@ -62,6 +62,6 @@ c --- 'itest,jtest' = grid point where detailed diagnostics are desired
 c
 c ---  s w i t c h e s    (if set to .true., then...)
 c
-      data csdiag/.false./,cnsvdi/.true./
+      data csdiag/.false./,cnsvdi/.false./
 c
       end
