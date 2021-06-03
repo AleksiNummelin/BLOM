@@ -58,8 +58,10 @@ module mod_diffusion
                 ! Brunt-Vaisala frequency, if bdmtyp = 2 the background
                 ! diffusivity is constant [].
    logical :: &
-      edsprs    ! If true, apply eddy mixing suppression away from steering
+      edsprs, & ! If true, apply eddy mixing suppression away from steering
                 ! level.
+      rhisctp   ! If true, use the minimum of planetary and topographic beta
+                ! to define the Rhines scale.
    character(len = 80) :: &
       eitmth, & ! Eddy-induced transport parameterization method. Valid
                 ! methods: 'intdif', 'gm'.
@@ -103,7 +105,7 @@ module mod_diffusion
                 ! [g2 cm kg-1 s-2].
 
    public :: egc, eggam, eglsmn, egmndf, egmxdf, egidfq, ri0, bdmc1, bdmc2, &
-             tkepf, bdmtyp, edsprs, eitmth, edritp, edwmth, &
+             tkepf, bdmtyp, edsprs, rhisctp, eitmth, edritp, edwmth, &
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
              usfltd, vsfltd, usflld, vsflld, &

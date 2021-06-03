@@ -34,7 +34,7 @@ module mod_channel
                        scq2, scp2, scu2, scv2, &
                        qlon, qlat, plon, plat, ulon, ulat, vlon, vlat, &
                        depths, corioq, coriop, betafp, angle, cosang, sinang, &
-                       nwp
+                       nwp, betatp
 
    use mod_eos, only: tofsig
    use mod_ben02, only: ntda, alb, albw, dfl
@@ -152,15 +152,16 @@ contains
                scu2(i,j)=scux(i,j)*scuy(i,j)
                scv2(i,j)=scvx(i,j)*scvy(i,j)
                ! Namelist controls coriolis and beta
-               corioq=corio0
-               coriop=corio0
-               betafp=beta0
+               corioq(i,j)=corio0
+               coriop(i,j)=corio0
+               betafp(i,j)=beta0
                ! Cartesian grid hard coded
-               angle=0._r8
-               cosang=1._r8
-               sinang=0._r8
+               angle(i,j)=0._r8
+               cosang(i,j)=1._r8
+               sinang(i,j)=0._r8
                ! initialize depth to 0
-               depths(i,j)=0._r8               
+               depths(i,j)=0._r8
+               betatp(i,j)=0._r8               
             enddo
          enddo
       !$omp end parallel do
@@ -205,6 +206,31 @@ contains
             endif
          enddo
       !$omp end parallel do
+      
+      !$omp parallel do private(i)
+      do j=1,jj
+         if (j0+j.gt.1) then
+         if (j0+j.lt.jtdm) then
+            do i=1,ii
+               if (i0+i.eq.1) then
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt &
+                  (((depths(i+1,j)-depths(i,j))/scpx(i,j))**2._r8 &
+                  +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
+               elseif (i0+i.eq.itdm) then
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt &
+                  ((0.5_r8*(depths(i,j)-depths(i-1,j))/scpx(i,j))**2._r8 & 
+                  +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
+               else
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt & 
+                  ((0.5_r8*(depths(i+1,j)-depths(i-1,j))/scpx(i,j))**2._r8 &
+                  +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
+               endif
+            enddo
+         endif
+         endif
+      enddo
+      !$omp end parallel do
+
       
       end subroutine geoenv_channel
       

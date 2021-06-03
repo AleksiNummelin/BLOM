@@ -34,7 +34,7 @@ c
      .                    scq2i, scp2i, scq2i, scuxi, scuyi, scvxi,
      .                    scvyi, qlon, qlat, plon, plat, ulon, ulat,
      .                    vlon, vlat, depths, corioq, coriop, betafp,
-     .                    area, nwp, inivar_grid
+     .                    betatp, area, nwp, inivar_grid
       use mod_utility, only: util1, util2
       use mod_nctools
       use mod_dia, only : iotype
@@ -138,6 +138,7 @@ c
       call xctilr(corioq, 1,1, nbdy,nbdy, halo_qs)
       call xctilr(coriop, 1,1, nbdy,nbdy, halo_ps)
       call xctilr(betafp, 1,1, nbdy,nbdy, halo_ps)
+      call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
       call xctilr(qclat, 1,4, nbdy,nbdy, halo_qs)
       call xctilr(qclon, 1,4, nbdy,nbdy, halo_qs)
       call xctilr(pclat, 1,4, nbdy,nbdy, halo_ps)
@@ -343,6 +344,7 @@ c
         call chksummsk(corioq,iq,1,'corioq')
         call chksummsk(coriop,ip,1,'coriop')
         call chksummsk(betafp,ip,1,'betafp')
+        call chksummsk(betafp,ip,1,'betatp')
         call chksummsk(scqx,iq,1,'scqx')
         call chksummsk(scqy,iq,1,'scqy')
         call chksummsk(scpx,ip,1,'scpx')

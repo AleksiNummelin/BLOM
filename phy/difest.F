@@ -29,13 +29,13 @@ c
       use mod_time, only: delt1
       use mod_xc
       use mod_grid, only: sigmar, scpx, scpy, scp2, plat,
-     .                    coriop, betafp, cosang, sinang
+     .                    coriop, betafp, betatp, cosang, sinang
       use mod_eos, only: rho
       use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp, edwmth,
+     .                         edsprs, edritp, rhisctp, edwmth,
      .                         difint, difiso, difdia, difmxp, difwgt
       use mod_cmnfld, only: nnslpx, nnslpy
       use mod_forcing, only: ustar, ustarb, ustar3, buoyfl
@@ -741,11 +741,17 @@ c
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
 c --- --------- Rhines scale.
-                rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
+                if (rhisctp) then
+                    rhisc=egr(i,k)/max(1.e-24,
+     .                                 betafp(i,j),
+     .                                 betatp(i,j))
+                else
+                    rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
+                endif
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
-c
+c                els=max(eglsmn,1._r8/(1._r8/bcrrd(i)+1._r8/rhisc))
 c --- --------- Temporary layer interface diffusivity.
                 difint(i,j,k)=egc*egr(i,k)*els*els
 #ifdef DIAG
@@ -765,6 +771,31 @@ c
               endif
             enddo
             enddo
+          enddo
+c
+c --- ---
+c --- --- Calculate a 2D average diffusivity, and assign it back
+c --- --- to the 3D array
+c         not sure about dfints
+          do l=1,isp(j)
+          do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            do k=2,kk
+              kn=k+nn
+              dfints(i)=dfints(i)+difint(i,j,k)*dp(i,j,kn)
+            enddo
+            dfints(i)=dfints(i)/p(i,j,kk+nn)
+            difint(i,j,1)=min(difmxp(i,j),egmxdf,
+     .                        max(egmndf,dfints(i)
+     .                            *difwgt(i,j)))
+            difiso(i,j,1)=dfints(i)
+            do k=2,kk
+              difint(i,j,k)=min(difmxp(i,j),egmxdf,
+     .                          max(egmndf,dfints(i)
+     .                              *difwgt(i,j)))
+              difiso(i,j,k)=dfints(i)
+            enddo
+c            dfints(i)=dfints(i)*dps(i) !retain the formulation above
+          enddo
           enddo
 c
 c --- --- Apply eddy diffusivity limiting, suppression when the Rossby
@@ -860,12 +891,17 @@ c
                 esfac=1.
               endif
 c
-              dfints(i)=dfints(i)/dps(i)
-              dfints(i)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
+c              dfints(i)=dfints(i)/dps(i)
+              difiso(i,j,1)=min(difmxp(i,j),egmxdf,
+     .                          max(egmndf,difiso(i,j,1)
+     .                              *difwgt(i,j)*esfac))
+c
+c              dfints(i)=
+c     .            min(difmxp(i,j),egmxdf,
+c     .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
             else
-              dfints(i)=egmndf
+               difiso(i,j,1)=egmndf
+c              dfints(i)=egmndf
             endif
           enddo
           enddo
@@ -901,11 +937,15 @@ c
                   esfac=1.
                 endif
 c
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+                difiso(i,j,k)=min(difmxp(i,j),egmxdf,
+     .                            max(egmndf,difiso(i,j,k)
+     .                                *difwgt(i,j)*esfac))
+c                difint(i,j,k)=
+c     .            min(difmxp(i,j),egmxdf,
+c     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
               else
                 difint(i,j,k)=difint(i,j,k-1)
+                difiso(i,j,k)=difiso(i,j,k-1)
               endif
             enddo
             enddo
@@ -913,16 +953,16 @@ c
 c
 c --- --- Set isopycnal tracer diffusivity proportional to the layer
 c --- --- interface diffusivity by the factor EGIDFQ.
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.lt.kfil(i,j)) then
-                difint(i,j,k)=dfints(i)
-              endif
-              difiso(i,j,k)=difint(i,j,k)*egidfq
-            enddo
-            enddo
-          enddo
+c          do k=1,kk
+c            do l=1,isp(j)
+c            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+c              if (k.lt.kfil(i,j)) then
+c                difint(i,j,k)=dfints(i)
+c              endif
+c              difiso(i,j,k)=difint(i,j,k)*egidfq
+c            enddo
+c            enddo
+c          enddo
 c
         endif
 c
