@@ -28,6 +28,9 @@ elif fcc.get_id() == 'intel'
                            '-init=snan,arrays', '-fpe0','-ftrapuv'],
                           language: 'fortran')
   endif
+  if get_option('buildtype') == 'release'
+    add_project_arguments('-fp-model precise'.split(),language: 'fortran')
+  endif
   if get_option('processors') == 1 and get_option('grid') == 'channel'
     add_project_arguments('-mcmodel=medium', language: 'fortran')
   endif
@@ -53,7 +56,7 @@ deps = [netcdf, omp, quadmath]
 includes = [phy_inc]
 
 # List of all sources in the project (should be added to in subfolders)
-sources = [dimensions]
+sources = []
 
 # Process the following subdirectories which contain other 'meson.build' files
 # that will add files to build into 'sources'
@@ -135,8 +138,11 @@ if get_option('parallel_netcdf')
   endif
 endif
 
+# Handle Unit Testing
+subdir('tests')
+
 # Create BLOM executable
-executable('blom', sources,
+executable('blom', sources, dimensions,
            include_directories: includes,
            dependencies: deps,
            link_language: 'fortran')
