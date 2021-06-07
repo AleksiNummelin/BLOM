@@ -27,8 +27,8 @@
 # MODIFY THE FOLLOWING PARAMETERS AS DESIRED
 idm = 8  #208
 jdm = 16 #512
-ibig = 8 #4 #8 #13 
-jbig = 1 #16 #8
+ibig = 4 #4 #8 #13 
+jbig = 4 #16 #8
 nreg = 1
 ##################################################
 #

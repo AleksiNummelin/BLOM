@@ -44,7 +44,7 @@ c
       implicit none
 c
       real avgbot,mval,fval
-      parameter (mval=-1.e12,fval=-1.e13)
+      parameter (mval=-1.e12_r8,fval=-1.e13_r8)
 c
       real, dimension(itdm,jtdm) :: tmpg
       real rnwp,rmxnbp,rtnbp,rnbp
@@ -287,8 +287,8 @@ c$OMP PARALLEL DO PRIVATE(i)
 c$OMP END PARALLEL DO
 c
       k=0
-      rmxnbp=0.
-      rtnbp=0.
+      rmxnbp=0._r8
+      rtnbp=0._r8
       do
         k=k+1
         call xcaget(tmpg,util1,1)
@@ -303,6 +303,16 @@ c
           enddo
         endif
         call xcaput(tmpg,util1,1)
+        !if (mnproc.eq.1) then
+        !    write (lp,*) 'depths: ',depths
+        !    call flush(lp)
+        !    write (lp,*) 'util1: ',util1
+        !    call flush(lp)
+        !    write (lp,*) 'ips: ',ips
+        !    call flush(lp)
+        !    write (lp,*) 'ip: ',ip
+        !    call flush(lp)
+        !endif
         call fill_global(mval,fval,halo_ps,util1)
 c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
