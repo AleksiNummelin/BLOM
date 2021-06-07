@@ -783,7 +783,7 @@ c         not sure about dfints
               kn=k+nn
               dfints(i)=dfints(i)+difint(i,j,k)*dp(i,j,kn)
             enddo
-            dfints(i)=dfints(i)/p(i,j,kk+nn)
+            dfints(i)=dfints(i)/p(i,j,kk)
             difint(i,j,1)=min(difmxp(i,j),egmxdf,
      .                        max(egmndf,dfints(i)
      .                            *difwgt(i,j)))

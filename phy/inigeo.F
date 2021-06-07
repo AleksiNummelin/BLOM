@@ -23,6 +23,7 @@ c --- ------------------------------------------------------------------
 c --- Initialize the geographic environment
 c --- ------------------------------------------------------------------
 c
+      use mod_types, only: r8
       use mod_config, only: expcnf
       use mod_fuk95, only: geoenv_fuk95
       use mod_channel, only: geoenv_channel
@@ -147,6 +148,37 @@ c
       call xctilr(uclon, 1,4, nbdy,nbdy, halo_us)
       call xctilr(vclat, 1,4, nbdy,nbdy, halo_vs)
       call xctilr(vclon, 1,4, nbdy,nbdy, halo_vs)
+      if (expcnf.eq.'channel') then
+c$OMP PARALLEL DO PRIVATE(i)
+      do j=1,jj
+         if (j0+j.gt.1) then
+         if (j0+j.lt.jtdm) then
+            do i=1,ii
+               if (i0+i.eq.1) then
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+     .            (((depths(i+1,j)-depths(i,j))/scpx(i,j))**2._r8
+     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))
+     .            **2._r8)
+               elseif (i0+i.eq.itdm) then
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+     .            ((0.5_r8*(depths(i,j)-depths(i-1,j))/scpx(i,j))**2._r8
+     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))
+     .            **2._r8)
+               else
+                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+     .            ((0.5_r8*(depths(i+1,j)-depths(i-1,j))/
+     .            scpx(i,j))**2._r8
+     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+     .            scpy(i,j))**2._r8)
+               endif
+            enddo
+         endif
+         endif
+      enddo
+c$OMP END PARALLEL DO
+      call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
+      endif
+c --- ----
       if (expcnf.eq.'cesm') then
 c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
@@ -344,7 +376,7 @@ c
         call chksummsk(corioq,iq,1,'corioq')
         call chksummsk(coriop,ip,1,'coriop')
         call chksummsk(betafp,ip,1,'betafp')
-        call chksummsk(betafp,ip,1,'betatp')
+        call chksummsk(betatp,ip,1,'betatp')
         call chksummsk(scqx,iq,1,'scqx')
         call chksummsk(scqy,iq,1,'scqy')
         call chksummsk(scpx,ip,1,'scpx')
