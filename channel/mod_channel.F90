@@ -34,7 +34,7 @@ module mod_channel
                        scq2, scp2, scu2, scv2, &
                        qlon, qlat, plon, plat, ulon, ulat, vlon, vlat, &
                        depths, corioq, coriop, betafp, angle, cosang, sinang, &
-                       nwp, betatp
+                       nwp
 
    use mod_eos, only: tofsig
    use mod_ben02, only: ntda, alb, albw, dfl
@@ -68,7 +68,7 @@ contains
       integer, parameter :: ncorru=10
       real(r8), dimension(ncorru) :: acorru, wlcorru
       real(r8), dimension(1 - nbdy:idm + nbdy, 1 - nbdy:jdm + nbdy) :: r0
-      real(r8), dimension(itdm,jtdm) :: rtmp, dtmp, scpy2D
+      real(r8), dimension(itdm,jtdm) :: rtmp
       real(r8) :: sldepth,sfdepth,rdepth,cwidth,swidth,scxy, &
                   corio0, beta0, d_corru, r
       integer :: i,j,l,ios
@@ -152,17 +152,15 @@ contains
                scu2(i,j)=scux(i,j)*scuy(i,j)
                scv2(i,j)=scvx(i,j)*scvy(i,j)
                ! Namelist controls coriolis and beta
-               corioq(i,j)=corio0
-               coriop(i,j)=corio0
-               betafp(i,j)=beta0
+               corioq=corio0
+               coriop=corio0
+               betafp=beta0
                ! Cartesian grid hard coded
-               angle(i,j)=0._r8
-               cosang(i,j)=1._r8
-               sinang(i,j)=0._r8
+               angle=0._r8
+               cosang=1._r8
+               sinang=0._r8
                ! initialize depth to 0
-               !depths(i,j)=0._r8
-               !dtmp(i,j)=0._r8
-               betatp(i,j)=0._r8               
+               depths(i,j)=0._r8               
             enddo
          enddo
       !$omp end parallel do
@@ -170,73 +168,43 @@ contains
       ! Set the bottom topography to be a tanh function.
       ! The resulting slope will have the same shape independent of the 
       ! grid size (no interpolation done though).
-      !call xctilr(scpx,1,1, nbdy,nbdy, halo_ps)
-      !call xctilr(scpy,1,1, nbdy,nbdy, halo_ps)
-      call xcaget(scpy2D, scpy, 1)
-      if (mnproc == 1) then
       !$omp parallel do private(i,r,l,d_corru)
-         do j=1,jtdm
-               do i=1,itdm
+         do j=1,jj
+            if (j0+j.gt.1) then
+            if (j0+j.lt.jtdm) then
+               do i=1,ii
                   !r=r0(i,j)-0.5_r8
-                  if (((j+j0).eq.1).or.((j+j0).eq.jtdm))then
-                     dtmp(i,j)=0._r8
-                  elseif ((scpy2D(i,j)*(j+j0)).lt.(swidth+cwidth)) then
+                  if ((scpy(i,j)*(j0+j)).lt.(swidth+cwidth)) then
                      l=1
                      d_corru=0._r8
                      do while (acorru(l).gt.0._r8)
                         d_corru=d_corru &
-                        +acorru(l)*sin(2._r8*pi*scpx(i,j)*(i+i0)/wlcorru(l))
+                        +acorru(l)*sin(2._r8*pi*scpx(i,j)*(i0+i)/wlcorru(l))
                         l=l+1
                      enddo
-                     dtmp(i,j) = sfdepth+.5_r8*sldepth* &
-                                  (1._r8+tanh(pi*(scpy2D(i,j)*j- &
+                     depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
+                                  (1._r8+tanh(pi*(scpy(i,j)*(j0+j)- &
                                   swidth-d_corru)/cwidth))
-                  elseif ((jtdm-(j+j0))*scpy2D(i,j).lt.(swidth+cwidth)) then
+                  elseif ((jtdm-(j0+j))*scpy(i,j).lt.(swidth+cwidth)) then
                      l=1
                      d_corru=0._r8
                      do while (acorru(l).gt.0._r8)
                         d_corru=d_corru &
-                                +acorru(l)*sin(2._r8*pi*scpx(i,j)*(i+i0)/ &
+                                +acorru(l)*sin(2._r8*pi*scpx(i,j)*(i0+i)/ &
                                 wlcorru(l))
                         l=l+1
                      enddo
-                     dtmp(i,j) = sfdepth+.5_r8*sldepth* &
-                                   (1._r8+tanh(pi*(scpy2D(i,j)*(jtdm-(j+j0)) &
+                     depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
+                                   (1._r8+tanh(pi*(scpy(i,j)*(jtdm-(j0+j)) &
                                    -swidth-d_corru)/cwidth))
                   else
-                     dtmp(i,j)=sfdepth+sldepth
+                     depths(i,j)=sfdepth+rdepth*r0(i,j)+sldepth
                   endif
                enddo
+            endif
+            endif
          enddo
       !$omp end parallel do
-      endif
-      call xcaput(dtmp, depths, 1)
-      !
-      call xctilr(depths,1,1, nbdy,nbdy, halo_ps)
-      !- $omp parallel do private(i)
-      !do j=1,jj
-      !   if (j0+j.gt.1) then
-      !   if (j0+j.lt.jtdm) then
-      !      do i=1,ii
-      !         if (i0+i.eq.1) then
-      !            betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt &
-      !            (((depths(i+1,j)-depths(i,j))/scpx(i,j))**2._r8 &
-      !            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
-      !         elseif (i0+i.eq.itdm) then
-      !            betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt &
-      !            ((0.5_r8*(depths(i,j)-depths(i-1,j))/scpx(i,j))**2._r8 & 
-      !            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
-      !         else
-      !            betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt & 
-      !            ((0.5_r8*(depths(i+1,j)-depths(i-1,j))/scpx(i,j))**2._r8 &
-      !            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))**2._r8)
-      !         endif
-      !      enddo
-      !   endif
-      !   endif
-      !enddo
-      ! - $omp end parallel do
-
       
       end subroutine geoenv_channel
       
