@@ -34,7 +34,7 @@ module mod_channel
                        scq2, scp2, scu2, scv2, &
                        qlon, qlat, plon, plat, ulon, ulat, vlon, vlat, &
                        depths, corioq, coriop, betafp, angle, cosang, sinang, &
-                       nwp
+                       nwp, betatp
 
    use mod_eos, only: tofsig
    use mod_ben02, only: ntda, alb, albw, dfl
@@ -160,7 +160,8 @@ contains
                cosang=1._r8
                sinang=0._r8
                ! initialize depth to 0
-               depths(i,j)=0._r8               
+               depths(i,j)=0._r8
+               betatp(i,j)=0._r8
             enddo
          enddo
       !$omp end parallel do
