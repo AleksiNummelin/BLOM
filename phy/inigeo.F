@@ -46,7 +46,7 @@ c
       real avgbot,mval,fval
       parameter (mval=-1.e12_r8,fval=-1.e13_r8)
 c
-      real, dimension(itdm,jtdm) :: tmpg
+      real, dimension(itdm,jtdm) :: tmpg, betatp_tmp
       real rnwp,rmxnbp,rtnbp,rnbp
       integer i,j,k,l,kmax
 c
@@ -149,33 +149,44 @@ c
       call xctilr(vclat, 1,4, nbdy,nbdy, halo_vs)
       call xctilr(vclon, 1,4, nbdy,nbdy, halo_vs)
       if (expcnf.eq.'channel') then
+      call xcaget(betatp_tmp,betatp,1)
+      if (mnproc.eq.1) then
 c$OMP PARALLEL DO PRIVATE(i)
-      do j=1,jj
-         if (j0+j.gt.1) then
-         if (j0+j.lt.jtdm) then
-            do i=1,ii
-               if (i0+i.eq.1) then
-                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
-     .            (((depths(i+1,j)-depths(i,j))/scpx(i,j))**2._r8
-     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))
-     .            **2._r8)
-               elseif (i0+i.eq.itdm) then
-                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
-     .            ((0.5_r8*(depths(i,j)-depths(i-1,j))/scpx(i,j))**2._r8
-     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/scpy(i,j))
-     .            **2._r8)
+      do j=1,jtdm
+         if ((j.gt.1).and.(j.lt.jtdm)) then
+         !if (j0+j.lt.jtdm) then
+            do i=1,itdm
+               if (i.eq.1) then
+                  betatp_tmp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+     .            ((0.5_r8*(depths(i+1,j)-depths(itdm,j))/
+     .            scpx(i,j))**2._r8
+     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+     .            scpy(i,j))**2._r8)
+               elseif (i.eq.itdm) then
+                  betatp_tmp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+     .            ((0.5_r8*(depths(1,j)-depths(i-1,j))/
+     .            scpx(i,j))**2._r8
+     .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+     .            scpy(i,j))**2._r8)
                else
-                  betatp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
+                  betatp_tmp(i,j) = (coriop(i,j)/depths(i,j))*sqrt
      .            ((0.5_r8*(depths(i+1,j)-depths(i-1,j))/
      .            scpx(i,j))**2._r8
      .            +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
      .            scpy(i,j))**2._r8)
                endif
             enddo
+         else
+            do i=1,itdm
+                betatp_tmp(i,j)=0._r8
+            enddo
          endif
-         endif
+         !endif
       enddo
 c$OMP END PARALLEL DO
+      !
+      endif
+      call xcaput(betatp_tmp,betatp,1)
       call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
       endif
 c --- ----
@@ -303,16 +314,6 @@ c
           enddo
         endif
         call xcaput(tmpg,util1,1)
-        !if (mnproc.eq.1) then
-        !    write (lp,*) 'depths: ',depths
-        !    call flush(lp)
-        !    write (lp,*) 'util1: ',util1
-        !    call flush(lp)
-        !    write (lp,*) 'ips: ',ips
-        !    call flush(lp)
-        !    write (lp,*) 'ip: ',ip
-        !    call flush(lp)
-        !endif
         call fill_global(mval,fval,halo_ps,util1)
 c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj
