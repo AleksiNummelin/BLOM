@@ -185,7 +185,7 @@ contains
                      depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
                                   (1._r8+tanh(pi*(scpy(i,j)*(j0+j)- &
                                   swidth-d_corru)/cwidth))
-                  elseif ((jtdm-(j0+j))*scpy(i,j).lt.(swidth+cwidth)) then
+                  elseif ((jtdm-(j0+j-1))*scpy(i,j).lt.(swidth+cwidth)) then
                      l=1
                      d_corru=0._r8
                      do while (acorru(l).gt.0._r8)
@@ -195,7 +195,7 @@ contains
                         l=l+1
                      enddo
                      depths(i,j) = sfdepth+rdepth*r0(i,j)+.5_r8*sldepth* &
-                                   (1._r8+tanh(pi*(scpy(i,j)*(jtdm-(j0+j)) &
+                                   (1._r8+tanh(pi*(scpy(i,j)*(jtdm-(j0+j-1)) &
                                    -swidth-d_corru)/cwidth))
                   else
                      depths(i,j)=sfdepth+rdepth*r0(i,j)+sldepth
