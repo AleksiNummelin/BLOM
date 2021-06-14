@@ -743,8 +743,8 @@ c
 c --- --------- Rhines scale.
                 if (rhisctp) then
                     rhisc=egr(i,k)/max(1.e-24,
-     .                                 betafp(i,j),
-     .                                 betatp(i,j))
+     .                                 max(betafp(i,j),
+     .                                     betatp(i,j)))
                 else
                     rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
                 endif
@@ -812,7 +812,14 @@ c
 c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
 c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
 c --- ------- Abernathey, 2014).
-              rhisc=egrs(i)/max(1.e-24,betafp(i,j))
+              if (rhisctp) then
+                  rhisc=egrs(i)/max(1.e-24,
+     .                               max(betafp(i,j),
+     .                                   betatp(i,j)))
+              else
+                  rhisc=egrs(i)/max(1.e-24,betafp(i,j))
+              endif
+              !rhisc=egrs(i)/max(1.e-24,betafp(i,j))
               els=max(eglsmn,min(bcrrd(i),rhisc))
               urmse(i)=2.86*egc*egrs(i)*els
 #ifdef DIAG
@@ -1347,6 +1354,9 @@ c
       call ncdims('z',kdm)
       call ncdefvar('coriop','x y',ndouble,8)
       call ncdefvar('betafp','x y',ndouble,8)
+      if (rhisctp) then
+        call ncdefvar('betatp','x y',ndouble,8)
+      endif
       call ncdefvar('kfpla','x y',ndouble,8)
       call ncdefvar('kfil','x y',ndouble,8)
       call ncdefvar('bcrrd','x y',ndouble,8)
@@ -1386,6 +1396,9 @@ c
       call ncedef  
       call ncwrtr('coriop','x y',coriop,ip,1,1.,0.,8)
       call ncwrtr('betafp','x y',betafp,ip,1,1.,0.,8)
+      if (rhisctp) then
+        call ncwrtr('betatp','x y',betatp,ip,1,1.,0.,8)
+      endif
       call ncwrtr('kfpla','x y',tmp2d_1,ip,1,1.,0.,8)
       call ncwrtr('kfil','x y',tmp2d_2,ip,1,1.,0.,8)
       call ncwrtr('bcrrd','x y',tmp2d_3,ip,1,1.,0.,8)
