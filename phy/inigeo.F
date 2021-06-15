@@ -44,9 +44,9 @@ c
       implicit none
 c
       real avgbot,mval,fval
-      parameter (mval=-1.e12,fval=-1.e13)
+      parameter (mval=-1.e12_r8,fval=-1.e13_r8)
 c
-      real, dimension(itdm,jtdm) :: tmpg
+      real, dimension(itdm,jtdm) :: tmpg, betatp_tmp
       real rnwp,rmxnbp,rtnbp,rnbp
       integer i,j,k,l,kmax
 c
@@ -139,6 +139,7 @@ c
       call xctilr(corioq, 1,1, nbdy,nbdy, halo_qs)
       call xctilr(coriop, 1,1, nbdy,nbdy, halo_ps)
       call xctilr(betafp, 1,1, nbdy,nbdy, halo_ps)
+      call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
       call xctilr(qclat, 1,4, nbdy,nbdy, halo_qs)
       call xctilr(qclon, 1,4, nbdy,nbdy, halo_qs)
       call xctilr(pclat, 1,4, nbdy,nbdy, halo_ps)
@@ -148,38 +149,43 @@ c
       call xctilr(vclat, 1,4, nbdy,nbdy, halo_vs)
       call xctilr(vclon, 1,4, nbdy,nbdy, halo_vs)
       if (expcnf.eq.'channel') then
-c$OMP PARALLEL DO PRIVATE(i)
-        do j=1,jj
-          if (((j+j0).gt.1).and.((j+j0).lt.jtdm)) then
-            do i=1,ii
-              if ((i+i0).eq.1) then
-                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
-     .          sqrt(((depths(i+1,j)-depths(i,j))/
-     .          scpx(i,j))**2
-     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
-     .          scpy(i,j))**2)
-              elseif ((i+i0).eq.itdm) then
-                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
-     .          sqrt(((depths(i,j)-depths(i-1,j))/
-     .          scpx(i,j))**2
-     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
-     .          scpy(i,j))**2)
-              else
-                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
-     .          sqrt((0.5_r8*(depths(i+1,j)-depths(i-1,j))/
-     .          scpx(i,j))**2
-     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
-     .          scpy(i,j))**2)
-              endif
-            enddo
-          else
-            do i=1,ii
-              betatp(i,j) = 0._r8
-            enddo
-          endif
-        enddo
-c$OMP END PARALLEL DO
-        call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
+c --- $OMP PARALLEL DO PRIVATE(i)
+c        do j=1,jj
+c          if (((j+j0).gt.1).and.((j+j0).lt.jtdm)) then
+c            do i=1,ii
+c              if ((i+i0).eq.1) then
+c                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
+c     .          sqrt(((depths(i+1,j)-depths(i,j))/
+c     .          scpx(i,j))**2
+c     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+c     .          scpy(i,j))**2)
+c              elseif ((i+i0).eq.itdm) then
+c                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
+c     .          sqrt(((depths(i,j)-depths(i-1,j))/
+c     .          scpx(i,j))**2
+c     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+c     .          scpy(i,j))**2)
+c              else
+c                betatp(i,j)=abs(coriop(i,j)/depths(i,j))*
+c     .          sqrt((0.5_r8*(depths(i+1,j)-depths(i-1,j))/
+c     .          scpx(i,j))**2
+c     .          +(0.5_r8*(depths(i,j+1)-depths(i,j-1))/
+c     .          scpy(i,j))**2)
+c              endif
+c            enddo
+c          else
+c            do i=1,ii
+c              betatp(i,j) = 0._r8
+c            enddo
+c          endif
+c        enddo
+c --- $OMP END PARALLEL DO
+c        call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
+        call xcaget(betatp_tmp,betatp,1)
+        if (mnproc.eq.1) then
+          write (lp,*) 'betatp', betatp_tmp
+          call flush(lp)
+        endif
       endif
       if (expcnf.eq.'cesm') then
 c$OMP PARALLEL DO PRIVATE(i)

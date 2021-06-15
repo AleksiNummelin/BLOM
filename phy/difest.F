@@ -130,17 +130,19 @@ c ---            bottom Brunt-Vaisala frequency [g/cm/s**2].
      .     iwdfac,dmxeff,tdmq,tdmls0,tdmls1,tdclat,tddlat,tkepls,niwls,
      .     cori30,bvf0,nubmin,dpgc,dpgrav,dpdiav,dpddav,dpnbav,ustmin,
      .     kappa,bfeps,sleps,zetas,as,cs
-      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=98060.,
-     .           dpbmin=980.6,drhomn=6.e-6,thkdff=.5,temdff=.35,nu0=.1,
-     .           nus0=50.,nug0=2500.,drho0=6.e-6,nuls0=500.,iwdfac=.06,
-     .           dmxeff=.2,tdmq=1./3.,tdmls0=500.*98060.,
-     .           tdmls1=100.*98060.,tdclat=74.5,tddlat=3.,
-     .           tkepls=20.*98060.,niwls=300.*98060.,cori30=7.2722e-5,
-     .           bvf0=5.24e-3,nubmin=.01,dpgc=300.*98060.,
-     .           dpgrav=100.*98060.,dpdiav=100.*98060.,
-     .           dpddav=10.*98060.,dpnbav=250.*98060.,ustmin=.1,
-     .           kappa=.4,bfeps=1.e-12,sleps=.1,zetas=-1.,as=-28.86,
-     .           cs=98.96)
+      parameter (iidtyp=2,bdmldp=1,tdmflg=1,iwdflg=1,dptmin=98060._r8,
+     .           dpbmin=980.6_r8,drhomn=6.e-6_r8,thkdff=.5_r8,
+     .           temdff=.35_r8,nu0=.1_r8,nus0=50._r8,nug0=2500._r8,
+     .           drho0=6.e-6_r8,nuls0=500._r8,iwdfac=.06_r8,
+     .           dmxeff=.2_r8,tdmq=1._r8/3._r8,tdmls0=500._r8*98060._r8,
+     .           tdmls1=100._r8*98060._r8,tdclat=74.5_r8,tddlat=3._r8,
+     .           tkepls=20._r8*98060._r8,niwls=300._r8*98060._r8,
+     .           cori30=7.2722e-5_r8,bvf0=5.24e-3_r8,nubmin=.01_r8,
+     .           dpgc=300._r8*98060._r8,dpgrav=100._r8*98060._r8,
+     .           dpdiav=100._r8*98060._r8,dpddav=10._r8*98060._r8,
+     .           dpnbav=250._r8*98060._r8,ustmin=.1_r8,kappa=.4_r8,
+     .           bfeps=1.e-12_r8,sleps=.1_r8,zetas=-1._r8,as=-28.86_r8,
+     .           cs=98.96_r8)
 c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) ::
      .  dv2
@@ -175,25 +177,25 @@ c
       real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) ::
      .  tmp2d_1,tmp2d_2,tmp2d_3,tmp2d_4,tmp2d_5,tmp2d_6,tmp2d_7
 c
-      tmp3d_1=0.
-      tmp3d_2=0.
-      tmp3d_3=0.
-      tmp3d_4=0.
-      tmp3d_5=0.
-      tmp3d_6=0.
-      tmp3d_7=0.
-      tmp3d_8=0.
-      tmp3d_9=0.
-      tmp3d_10=0.
-      tmp3d_11=0.
-      tmp3d_12=0.
-      tmp2d_1=0.
-      tmp2d_2=0.
-      tmp2d_3=0.
-      tmp2d_4=0.
-      tmp2d_5=0.
-      tmp2d_6=0.
-      tmp2d_7=0.
+      tmp3d_1=0._r8
+      tmp3d_2=0._r8
+      tmp3d_3=0._r8
+      tmp3d_4=0._r8
+      tmp3d_5=0._r8
+      tmp3d_6=0._r8
+      tmp3d_7=0._r8
+      tmp3d_8=0._r8
+      tmp3d_9=0._r8
+      tmp3d_10=0._r8
+      tmp3d_11=0._r8
+      tmp3d_12=0._r8
+      tmp2d_1=0._r8
+      tmp2d_2=0._r8
+      tmp2d_3=0._r8
+      tmp2d_4=0._r8
+      tmp2d_5=0._r8
+      tmp2d_6=0._r8
+      tmp2d_7=0._r8
 #endif
 c
 c$OMP PARALLEL DO PRIVATE(k,kn,l,i)
@@ -332,7 +334,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
               elseif (k.lt.klpl(i)) then
                 q=v(i,j,kn+1)-v(i,j,kn)
                 q=q*q
-                dv2(i,j,k)=.5*(tup(i)+q)
+                dv2(i,j,k)=.5_r8*(tup(i)+q)
                 tup(i)=q
               else
                 dv2(i,j,k)=tup(i)
@@ -402,7 +404,7 @@ c ----- Compute squared vertical velocity gradients of u-component
               elseif (k.lt.klpl(i)) then
                 q=u(i,j,kn+1)-u(i,j,kn)
                 q=q*q
-                du2(i,k)=.5*(tup(i)+q)
+                du2(i,k)=.5_r8*(tup(i)+q)
                 tup(i)=q
               else
                 du2(i,k)=tup(i)
@@ -418,7 +420,7 @@ c ----- the WKB approximation by Chelton at al. (1998).
 c ----- !!! Could include top layer in computation !!!
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          pup(i)=.5*(3.*p(i,j,3)-p(i,j,min(kk,kfpla(i,j,n))+1))
+          pup(i)=.5_r8*(3._r8*p(i,j,3)-p(i,j,min(kk,kfpla(i,j,n))+1))
           kn=2+nn
           tup(i)=temp(i,j,kn)
           sup(i)=saln(i,j,kn)
@@ -433,7 +435,7 @@ c ----- !!! Could include top layer in computation !!!
               if (p(i,j,kk+1)-p(i,j,k+1).lt.epsil) then
                 plo=p(i,j,kk+1)
               else
-                plo=.5*(p(i,j,k)+p(i,j,k+1))
+                plo=.5_r8*(p(i,j,k)+p(i,j,k+1))
               endif
               tlo=temp(i,j,kn)
               slo=saln(i,j,kn)
@@ -454,7 +456,7 @@ c ----- !!! Could include top layer in computation !!!
           bcrrd(i)=
      .      sqrt(cr(i)*cr(i)
      .           /max(coriop(i,j)*coriop(i,j)+2.*betafp(i,j)*cr(i),
-     .                1.e-24))
+     .                1.e-24_r8))
 #ifdef DIAG
           tmp2d_3(i,j)=bcrrd(i)
 #endif
@@ -648,7 +650,7 @@ c --- --- Eady growth rate.
               if (kmax(i,j)-kfil(i,j).ge.1) then
                 k=kfil(i,j)
                 if     (kmax(i-1,j).ge.k.and.kmax(i+1,j).ge.k) then
-                  q=.25*(nnslpx(i,j,k)+nnslpx(i+1,j,k))**2
+                  q=.25_r8*(nnslpx(i,j,k)+nnslpx(i+1,j,k))**2
                 elseif (kmax(i-1,j).ge.k) then
                   q=nnslpx(i,j,k)**2
                 elseif (kmax(i+1,j).ge.k) then
@@ -657,7 +659,7 @@ c --- --- Eady growth rate.
                   q=0._r8
                 endif
                 if     (kmax(i,j-1).ge.k.and.kmax(i,j+1).ge.k) then
-                  q=q+.25*(nnslpy(i,j,k)+nnslpy(i,j+1,k))**2
+                  q=q+.25_r8*(nnslpy(i,j,k)+nnslpy(i,j+1,k))**2
                 elseif (kmax(i,j-1).ge.k) then
                   q=q+nnslpy(i,j,k)**2
                 elseif (kmax(i,j+1).ge.k) then
@@ -673,7 +675,7 @@ c --- --- Eady growth rate.
                 if (kmax(i,j)-kfil(i,j).ge.1) then
                   if     (k.ge.kfil(i,j).and.k.lt.kmax(i,j)) then
                     if     (kmax(i-1,j).gt.k.and.kmax(i+1,j).gt.k) then
-                      q=.25*(nnslpx(i,j,k+1)+nnslpx(i+1,j,k+1))**2
+                      q=.25_r8*(nnslpx(i,j,k+1)+nnslpx(i+1,j,k+1))**2
                     elseif (kmax(i-1,j).gt.k) then
                       q=nnslpx(i,j,k+1)**2
                     elseif (kmax(i+1,j).gt.k) then
@@ -682,14 +684,14 @@ c --- --- Eady growth rate.
                       q=0._r8
                     endif
                     if     (kmax(i,j-1).gt.k.and.kmax(i,j+1).gt.k) then
-                      q=q+.25*(nnslpy(i,j,k+1)+nnslpy(i,j+1,k+1))**2
+                      q=q+.25_r8*(nnslpy(i,j,k+1)+nnslpy(i,j+1,k+1))**2
                     elseif (kmax(i,j-1).gt.k) then
                       q=q+nnslpy(i,j,k+1)**2
                     elseif (kmax(i,j+1).gt.k) then
                       q=q+nnslpy(i,j+1,k+1)**2
                     endif
                     egrlo=sqrt(q)
-                    egr(i,k)=.5*(egrup(i)+egrlo)
+                    egr(i,k)=.5_r8*(egrup(i)+egrlo)
                     egrup(i)=egrlo
 #ifdef DIAG
                     tmp3d_3(i,j,k)=egr(i,k)
