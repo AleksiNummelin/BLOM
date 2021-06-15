@@ -25,17 +25,18 @@ c --- ------------------------------------------------------------------
 #define DIAG
 #undef DIAG
 c
+      use mod_types, only: r8
       use mod_constants, only: g, alpha0, pi, epsil, onem, onecm
       use mod_time, only: delt1
       use mod_xc
       use mod_grid, only: sigmar, scpx, scpy, scp2, plat,
-     .                    coriop, betafp, cosang, sinang
+     .                    coriop, betafp, betatp, cosang, sinang
       use mod_eos, only: rho
       use mod_state, only:  u, v, dp, dpu, dpv, temp, saln, sigma, p,
      .                      pbu, pbv, ubflxs_p, vbflxs_p, kfpla
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, edritp, edwmth,
+     .                         edsprs, edritp, rhisctp, edwmth,
      .                         difint, difiso, difdia, difmxp, difwgt
       use mod_cmnfld, only: nnslpx, nnslpy
       use mod_forcing, only: ustar, ustarb, ustar3, buoyfl
@@ -316,7 +317,7 @@ c$OMP PARALLEL DO PRIVATE(l,i,kfpl,klpl,k,kn,q,tup)
         do k=1,kk
           kn=k+nn
           do i=1,ii
-            dv2(i,j,k)=0.
+            dv2(i,j,k)=0._r8
             mskv(i,j,k)=0
           enddo
           do l=1,isv(j)
@@ -386,7 +387,7 @@ c ----- Compute squared vertical velocity gradients of u-component
         do k=1,kk
           kn=k+nn
           do i=1,ii+1
-            du2(i,k)=0.
+            du2(i,k)=0._r8
             msku(i,k)=0
           enddo
           do l=1,isu(j)
@@ -421,7 +422,7 @@ c ----- !!! Could include top layer in computation !!!
           kn=2+nn
           tup(i)=temp(i,j,kn)
           sup(i)=saln(i,j,kn)
-          cr(i)=0.
+          cr(i)=0._r8
         enddo
         enddo
         do k=3,kk
@@ -437,7 +438,7 @@ c ----- !!! Could include top layer in computation !!!
               tlo=temp(i,j,kn)
               slo=saln(i,j,kn)
               cr(i)=cr(i)
-     .             +sqrt(max(0.,(rho(p(i,j,k),tlo,slo)
+     .             +sqrt(max(0._r8,(rho(p(i,j,k),tlo,slo)
      .                          -rho(p(i,j,k),tup(i),sup(i)))
      .                          *(plo-pup(i))))
               pup(i)=plo
@@ -468,8 +469,8 @@ c ----- Compute local gradient richardson number and Brunt-Vaisala
 c ----- frequency.
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          bvfbot(i)=0.
-          dps(i)=0.
+          bvfbot(i)=0._r8
+          dps(i)=0._r8
         enddo
         enddo
         do k=4,kk
@@ -479,14 +480,16 @@ c ----- frequency.
             if (k.ge.kfil(i,j).and.k.le.kmax(i,j).and.
      .          kmax(i,j)-kfil(i,j).ge.1) then
               if     (k.eq.kfil(i,j)) then
-                q=max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1))
+                q=max(0._r8,rho(p(i,j,k+1),temp(i,j,kn+1),
+     .                saln(i,j,kn+1))
      .                  -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
                 drho(i,k)=q
                 tup(i)=q
               elseif (k.lt.kmax(i,j)) then
-                q=max(0.,rho(p(i,j,k+1),temp(i,j,kn+1),saln(i,j,kn+1))
+                q=max(0._r8,rho(p(i,j,k+1),temp(i,j,kn+1),
+     .                saln(i,j,kn+1))
      .                  -rho(p(i,j,k+1),temp(i,j,kn  ),saln(i,j,kn  )))
-                drho(i,k)=2.*tup(i)*q/max(1.e-14,tup(i)+q)
+                drho(i,k)=2._r8*tup(i)*q/max(1.e-14_r8,tup(i)+q)
                 tup(i)=q
               else
                 drho(i,k)=tup(i)
@@ -509,7 +512,7 @@ c
 c
 c --- ------- Local gradient Richardson number
               rig(i,k)=alpha0*alpha0*max(drhomn,drho(i,k))*dp(i,j,kn)
-     .                 /max(1.e-9,q)
+     .                 /max(1.e-9_r8,q)
 #ifdef DIAG
               tmp3d_2(i,j,k)=rig(i,k)
 #endif
@@ -519,19 +522,19 @@ c --- ------- Local gradient Richardson number
                 h=max(onem,dp(i,j,kn))*alpha0/g
 c               h=max(onem*1e-8,dp(i,j,kn))*alpha0/g
 c               h=max(onemm,dp(i,j,kn))*alpha0/g
-                Shear2(i,j,k)=max(1.e-9,q)/(h*h)
+                Shear2(i,j,k)=max(1.e-9_r8,q)/(h*h)
                 Prod(i,j,k)=difdia(i,j,k)*Pr_t*Shear2(i,j,k)
               else
-                Buoy(i,j,k)=0.
-                Shear2(i,j,k)=1.e-9
-                Prod(i,j,k)=0.
+                Buoy(i,j,k)=0._r8
+                Shear2(i,j,k)=1.e-9_r8
+                Prod(i,j,k)=0._r8
               endif
 #endif
 c
 c --- ------- Accumulate Brunt-Vaisala frequency in a region near the
 c --- ------- bottom
-              q=max(0.,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
-              if (q.gt.0.) then
+              q=max(0._r8,p(i,j,k+1)-max(p(i,j,kk+1)-dpnbav,p(i,j,k)))
+              if (q.gt.0._r8) then
                 bvfbot(i)=bvfbot(i)+bvf(i,k)*q
                 dps(i)=dps(i)+q
               endif
@@ -541,7 +544,7 @@ c --- ------- bottom
         enddo
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (dps(i).gt.0.) then
+          if (dps(i).gt.0._r8) then
             bvfbot(i)=bvfbot(i)/dps(i)
 #ifdef DIAG
             tmp2d_5(i,j)=bvfbot(i)
@@ -555,20 +558,20 @@ c --- - Rossby radius is resolved by the grid.
         if     (edwmth.eq.'smooth') then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
+            q=bcrrd(i)/sqrt(.5_r8*(scpx(i,j)*scpx(i,j)
      .                         +scpy(i,j)*scpy(i,j)))
-            difwgt(i,j)=1./(1.+.25*q**4)
+            difwgt(i,j)=1._r8/(1._r8+.25_r8*q**4)
           enddo
           enddo
         elseif (edwmth.eq.'step') then
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-            q=bcrrd(i)/sqrt(.5*(scpx(i,j)*scpx(i,j)
+            q=bcrrd(i)/sqrt(.5_r8*(scpx(i,j)*scpx(i,j)
      .                         +scpy(i,j)*scpy(i,j)))
             if (q.le.2.) then
-              difwgt(i,j)=1.
+              difwgt(i,j)=1._r8
             else
-              difwgt(i,j)=0.
+              difwgt(i,j)=0._r8
             endif
           enddo
           enddo
@@ -614,8 +617,8 @@ c --- --- Eady growth rate.
           if (edsprs) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              egrs(i)=0.
-              dps(i)=0.
+              egrs(i)=0._r8
+              dps(i)=0._r8
             enddo
             enddo
           endif
@@ -630,7 +633,7 @@ c --- --- Eady growth rate.
                   tmp3d_3(i,j,k)=egr(i,k)
 #endif
                   if (edsprs) then
-                    q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+                    q=max(0._r8,min(p(i,j,kfil(i,j))+dpgrav,
      .                           p(i,j,k+1))-p(i,j,k))
                     dps(i)=dps(i)+q
                     egrs(i)=egrs(i)+egr(i,k)*q
@@ -651,7 +654,7 @@ c --- --- Eady growth rate.
                 elseif (kmax(i+1,j).ge.k) then
                   q=nnslpx(i+1,j,k)**2
                 else
-                  q=0.
+                  q=0._r8
                 endif
                 if     (kmax(i,j-1).ge.k.and.kmax(i,j+1).ge.k) then
                   q=q+.25*(nnslpy(i,j,k)+nnslpy(i,j+1,k))**2
@@ -676,7 +679,7 @@ c --- --- Eady growth rate.
                     elseif (kmax(i+1,j).gt.k) then
                       q=nnslpx(i+1,j,k+1)**2
                     else
-                      q=0.
+                      q=0._r8
                     endif
                     if     (kmax(i,j-1).gt.k.and.kmax(i,j+1).gt.k) then
                       q=q+.25*(nnslpy(i,j,k+1)+nnslpy(i,j+1,k+1))**2
@@ -692,7 +695,7 @@ c --- --- Eady growth rate.
                     tmp3d_3(i,j,k)=egr(i,k)
 #endif
                     if (edsprs) then
-                      q=max(0.,min(p(i,j,kfil(i,j))+dpgrav,
+                      q=max(0._r8,min(p(i,j,kfil(i,j))+dpgrav,
      .                             p(i,j,k+1))-p(i,j,k))
                       dps(i)=dps(i)+q
                       egrs(i)=egrs(i)+egr(i,k)*q
@@ -718,10 +721,10 @@ c --- --- Eady growth rate.
           if (edsprs) then
             do l=1,isp(j)
             do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (dps(i).gt.0.) then
+              if (dps(i).gt.0._r8) then
                 egrs(i)=egrs(i)/dps(i)
               else
-                egrs(i)=0.
+                egrs(i)=0._r8
               endif
             enddo
             enddo
@@ -730,8 +733,8 @@ c
           do l=1,isp(j)
           do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
             difint(i,j,1)=egmndf
-            dfints(i)=0.
-            dps(i)=0.
+            dfints(i)=0._r8
+            dps(i)=0._r8
           enddo
           enddo
           do k=2,kk
@@ -741,7 +744,14 @@ c
      .            kmax(i,j)-kfil(i,j).ge.1) then
 c
 c --- --------- Rhines scale.
-                rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
+                if (rhisctp) then
+                    rhisc=egr(i,k)/max(1.e-24_r8,
+     .                                 max(betafp(i,j),
+     .                                     betatp(i,j)))
+                else
+                    rhisc=egr(i,k)/max(1.e-24_r8,betafp(i,j))
+                endif
+c                rhisc=egr(i,k)/max(1.e-24,betafp(i,j))
 c
 c --- --------- Eddy length scale.
                 els=max(eglsmn,min(bcrrd(i),rhisc))
@@ -755,7 +765,7 @@ c --- --------- Temporary layer interface diffusivity.
 c
 c --- --------- Accumulate diffusivities in a region below the first
 c --- --------- physical layer.
-                q=max(0.,min(p(i,j,kfil(i,j))+dpdiav,
+                q=max(0._r8,min(p(i,j,kfil(i,j))+dpdiav,
      .                       p(i,j,k+1))-p(i,j,k))
                 dps(i)=dps(i)+q
                 dfints(i)=dfints(i)+difint(i,j,k)*q
@@ -766,6 +776,7 @@ c
             enddo
             enddo
           enddo
+c
 c
 c --- --- Apply eddy diffusivity limiting, suppression when the Rossby
 c --- --- radius is resolved by the grid, and suppression away from
@@ -781,23 +792,30 @@ c
 c --- ------- RMS eddy velocity estimated from K = Gamma*u_rms*L, where
 c --- ------- a mixing efficiency of Gamma = 0.35 is used (Klocker and
 c --- ------- Abernathey, 2014).
-              rhisc=egrs(i)/max(1.e-24,betafp(i,j))
+              if (rhisctp) then
+                  rhisc=egrs(i)/max(1.e-24_r8,
+     .                               max(betafp(i,j),
+     .                                   betatp(i,j)))
+              else
+                  rhisc=egrs(i)/max(1.e-24_r8,betafp(i,j))
+              endif
+c              rhisc=egrs(i)/max(1.e-24,betafp(i,j))
               els=max(eglsmn,min(bcrrd(i),rhisc))
-              urmse(i)=2.86*egc*egrs(i)*els
+              urmse(i)=2.86_r8*egc*egrs(i)*els
 #ifdef DIAG
               tmp2d_6(i,j)=urmse(i)
 #endif
 c
 c --- ------- Zonal eddy phase speed minus zonal barotropic velocity
 c --- ------- with a lower bound of -20 cm s-1.
-              cpse(i)=max(-20.,-betafp(i,j)*bcrrd(i)**2)
+              cpse(i)=max(-20._r8,-betafp(i,j)*bcrrd(i)**2)
 #ifdef DIAG
               tmp2d_7(i,j)=cpse(i)
 #endif
 c
             endif
 c
-            if (dps(i).gt.0.) then
+            if (dps(i).gt.0._r8) then
 c
               if (edsprs) then
 c
@@ -821,7 +839,7 @@ c --- --------- eddy phase speed.
      .              +u(i+1,j,2+nn)*dpu(i+1,j,2+nn))
      .              /(dpu(i+1,j,1+nn)+dpu(i+1,j,2+nn))
                 else
-                  q=0.
+                  q=0._r8
                 endif
                 umnsc=q*cosang(i,j)
                 if     (ip(i,j-1)+ip(i,j+1).eq.2) then
@@ -840,7 +858,7 @@ c --- --------- eddy phase speed.
      .              +v(i,j+1,2+nn)*dpv(i,j+1,2+nn))
      .              /(dpv(i,j+1,1+nn)+dpv(i,j+1,2+nn))
                 else
-                  q=0.
+                  q=0._r8
                 endif
                 umnsc=umnsc-q*sinang(i,j)-cpse(i)
 #ifdef DIAG
@@ -851,21 +869,31 @@ c --- --------- Eddy mixing suppresion factor where lower bounds of
 c --- --------- zonal velocity minus eddy phase speed and absolute value
 c --- --------- of RMS eddy velocity is set to -20 cm s-1 and 5 cm s-1,
 c --- --------- respectively.
-                esfac=1./(1.+4.*(umnsc/max(5.,abs(urmse(i))))**2)
+                esfac=1._r8/(1._r8+4._r8*(umnsc/max(5._r8,
+     .                                    abs(urmse(i))))**2)
 #ifdef DIAG
                 tmp3d_7(i,j,1)=esfac
 #endif
 c
               else
-                esfac=1.
+                esfac=1._r8
               endif
-c
-              dfints(i)=dfints(i)/dps(i)
-              dfints(i)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
+c -- ---  Apply suppression to Redi only
+              difiso(i,j,1)=min(difmxp(i,j),egmxdf,
+     .                          max(egmndf,dfints(i)
+     .                              *difwgt(i,j)*esfac/dps(i)))
+c --- --- Interface diffusivity without suppression
+              difint(i,j,1)=min(difmxp(i,j),egmxdf,
+     .                          max(egmndf,dfints(i)
+     .                              *difwgt(i,j)/dps(i)))
+c              dfints(i)=dfints(i)/dps(i)
+c              dfints(i)=
+c     .            min(difmxp(i,j),egmxdf,
+c     .                max(egmndf,dfints(i)*difwgt(i,j)*esfac))
             else
-              dfints(i)=egmndf
+c              dfints(i)=egmndf
+               difint(i,j,1)=egmndf
+               difiso(i,j,1)=egmndf
             endif
           enddo
           enddo
@@ -892,19 +920,28 @@ c --- ----------- Zonal velocity minus eddy phase speed.
 #endif
 c
 c --- ----------- Eddy mixing suppresion factor.
-                  esfac=1./(1.+4.*(umnsc/max(5.,abs(urmse(i))))**2)
+                  esfac=1._r8/(1._r8+4._r8*(umnsc/max(5._r8,
+     .                                      abs(urmse(i))))**2)
 #ifdef DIAG
                   tmp3d_7(i,j,k)=esfac
 #endif
 c
                 else
-                  esfac=1.
+                  esfac=1._r8
                 endif
 c
-                difint(i,j,k)=
-     .            min(difmxp(i,j),egmxdf,
-     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
+
+                difiso(i,j,k)=min(difmxp(i,j),egmxdf,
+     .                            max(egmndf,dfints(i)
+     .                                *difwgt(i,j)*esfac/dps(i)))
+                difint(i,j,k)=min(difmxp(i,j),egmxdf,
+     .                            max(egmndf,dfints(i)
+     .                                *difwgt(i,j)/dps(i)))
+c                difint(i,j,k)=
+c     .            min(difmxp(i,j),egmxdf,
+c     .                max(egmndf,difint(i,j,k)*difwgt(i,j)*esfac))
               else
+                difiso(i,j,k)=difiso(i,j,k-1)
                 difint(i,j,k)=difint(i,j,k-1)
               endif
             enddo
@@ -913,16 +950,16 @@ c
 c
 c --- --- Set isopycnal tracer diffusivity proportional to the layer
 c --- --- interface diffusivity by the factor EGIDFQ.
-          do k=1,kk
-            do l=1,isp(j)
-            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-              if (k.lt.kfil(i,j)) then
-                difint(i,j,k)=dfints(i)
-              endif
-              difiso(i,j,k)=difint(i,j,k)*egidfq
-            enddo
-            enddo
-          enddo
+c          do k=1,kk
+c            do l=1,isp(j)
+c            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+c              if (k.lt.kfil(i,j)) then
+c                difint(i,j,k)=dfints(i)
+c              endif
+c              difiso(i,j,k)=difint(i,j,k)*egidfq
+c            enddo
+c            enddo
+c          enddo
 c
         endif
 c
@@ -933,9 +970,9 @@ c
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
           difdia(i,j,1)=nu0
-          dfddsu(i)=0.
-          dfddsl(i)=0.
-          dps(i)=0.
+          dfddsu(i)=0._r8
+          dfddsl(i)=0._r8
+          dps(i)=0._r8
         enddo
         enddo
         do k=2,kk
@@ -956,7 +993,7 @@ c
 c --- --------- Type 2: Background diffusivity is a constant
                 nub=bdmc2
               else
-                nub=0.
+                nub=0._r8
               endif
               if (iwdflg.eq.1) then
                 nub=nub*(1.+(iwdfac-1.)*ficem(i,j))
@@ -976,22 +1013,22 @@ c --- ------- Shear driven diapycnal mixing.
 c
 c --- --------- Maximum diffusivity is increased near the bottom to
 c --- --------- provide additional mixing of gravity currents.
-                q=(p(i,j,kk+1)-p(i,j,k)+.5*dp(i,j,kn))
-     .            /min(dpgc,.5*p(i,j,kk+1))
-                q=max(0.,1.-q*q)
+                q=(p(i,j,kk+1)-p(i,j,k)+.5_r8*dp(i,j,kn))
+     .            /min(dpgc,.5_r8*p(i,j,kk+1))
+                q=max(0._r8,1._r8-q*q)
                 q=q*q*q
-                nus=q*nug0+(1.-q)*nus0
+                nus=q*nug0+(1_r8.-q)*nus0
 c
 c --- --------- Parameterization of diffusivity as a function of local
 c --- --------- gradient richardson number.
                 q=rig(i,k)/ri0
-                q=max(0.,1.-q*q)
+                q=max(0.,1._r8-q*q)
                 nus=nus*q*q*q
               else
-                nus=0.
+                nus=0._r8
               endif
 #else
-              if (bvfsq(i,k).gt.0.) then  ! stable stratification
+              if (bvfsq(i,k).gt.0._r8) then  ! stable stratification
                 gls_c3=gls_c3minus
               else                        ! unstable stratification
                 gls_c3=gls_c3plus
@@ -1001,8 +1038,8 @@ c --- --------- gradient richardson number.
      .                               +gls_c3*Buoy(i,j,k))/gls_c2,
      .                               gls_psi_min)
 #  endif              
-              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5+gls_m/gls_n)
-     .                    *trc(i,j,kn,itrgls)**(-1./gls_n)
+              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5_r8+gls_m/
+     .                    gls_n)*trc(i,j,kn,itrgls)**(-1._r8/gls_n)
               tke_prod=Prod(i,j,k)
               tke_buoy=Buoy(i,j,k)
               tke_Q=tke_epsilon/trc(i,j,kn,itrtke)
@@ -1016,34 +1053,34 @@ c --- --------- gradient richardson number.
               gls_Q=gls_diss/trc(i,j,kn,itrgls)
 #  endif
 #  ifdef GLS
-              if (gls_prod+gls_buoy.ge.0.) then
+              if (gls_prod+gls_buoy.ge.0._r8) then
                 trc(i,j,kn,itrgls)=
      .            (trc(i,j,kn,itrgls)+delt1*(gls_prod+gls_buoy))
-     .            /(1.+delt1*gls_Q)
+     .            /(1._r8+delt1*gls_Q)
               else
                 trc(i,j,kn,itrgls)=
      .            (trc(i,j,kn,itrgls)+delt1*gls_prod)
-     .            /(1.+delt1*(gls_Q-(gls_buoy/trc(i,j,kn,itrgls))))
+     .            /(1._r8+delt1*(gls_Q-(gls_buoy/trc(i,j,kn,itrgls))))
               endif
               trc(i,j,kn,itrgls)=max(trc(i,j,kn,itrgls),gls_psi_min)
-              q=.56**(.5*gls_n)*gls_cmu0**gls_p
-     .          *trc(i,j,kn,itrtke)**(gls_m+.5*gls_n)
+              q=.56_r8**(.5_r8*gls_n)*gls_cmu0**gls_p
+     .          *trc(i,j,kn,itrtke)**(gls_m+.5_r8*gls_n)
      .          *bvf(i,k)**(-gls_n)
-              if (gls_n.lt.0.) then
+              if (gls_n.lt.0._r8) then
                 trc(i,j,kn,itrgls)=max(trc(i,j,kn,itrgls),q)
               else
                 trc(i,j,kn,itrgls)=min(trc(i,j,kn,itrgls),q)
               endif
 #  endif
 c
-              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5+gls_m/gls_n)
-     .                    *trc(i,j,kn,itrgls)**(-1./gls_n)
+              tke_epsilon=cmu_fac2*trc(i,j,kn,itrtke)**(1.5_r8+gls_m/
+     .                    gls_n)*trc(i,j,kn,itrgls)**(-1._r8/gls_n)
               tke_Q=tke_epsilon/trc(i,j,kn,itrtke)
 c
-              if (tke_prod+tke_buoy.ge.0.) then
+              if (tke_prod+tke_buoy.ge.0._r8) then
                 trc(i,j,kn,itrtke)=
      .            (trc(i,j,kn,itrtke)+delt1*(tke_prod+tke_buoy))
-     .            /(1.+delt1*tke_Q)
+     .            /(1._r8+delt1*tke_Q)
               else
                 trc(i,j,kn,itrtke)=
      .            (trc(i,j,kn,itrtke)+delt1*tke_prod)
@@ -1052,7 +1089,7 @@ c
               endif
 c
 c --- ------- Penetration of surface TKE below mixed layer.
-              if (tkepf.gt.0.) then
+              if (tkepf.gt.0._r8) then
                 if (dp(i,j,kn).lt.epsil) then
                   q=exp(-p(i,j,k)/tkepls)
                 else
@@ -1080,9 +1117,9 @@ c --- ------- Bottom Boundary Conditions
                 trc(i,j,kn,itrtke)=max(tke_min,(ust/gls_cmu0)**2)
 #  ifdef GLS
                 trc(i,j,kn,itrgls)=max(gls_psi_min,
-     .                                 (gls_cmu0**(gls_p-2.*gls_m))
-     .                                 *(ust**(2.*gls_m))
-     .                                 *(kappa*1.e2)**gls_n)
+     .                                 (gls_cmu0**(gls_p-2._r8*gls_m))
+     .                                 *(ust**(2._r8*gls_m))
+     .                                 *(kappa*1.e2_r8)**gls_n)
 #  endif
               endif
 c
@@ -1090,7 +1127,7 @@ c
      .                     cmu_fac1*trc(i,j,kn,itrgls)**(gls_exp1)
      .                     *trc(i,j,kn,itrtke)**(-tke_exp1))
 
-              if (bvfsq(i,k).gt.0.) then  ! stable stratification
+              if (bvfsq(i,k).gt.0._r8) then  ! stable stratification
 c               Ls_lmt=min(Ls_unlmt,
 c    .                     sqrt(.56*trc(i,j,kn,itrtke)
 c    .                          /max(bvfsq(i,k),1.e-10)))
@@ -1105,9 +1142,9 @@ c
 c --- ------- Compute nondimensional stability functions for tracers
 c --- ------- (Sh) and momentum (Sm). Canuto-A
               Gh=min(gls_Gh0,-bvfsq(i,k)*Ls_lmt*Ls_lmt
-     .                        /(2.*trc(i,j,kn,itrtke)))
+     .                        /(2._r8*trc(i,j,kn,itrtke)))
               Gh=min(Gh,(Gh-(Gh-gls_Ghcri)**2)
-     .                  /(Gh+gls_Gh0-2.*gls_Ghcri))
+     .                  /(Gh+gls_Gh0-2._r8*gls_Ghcri))
               Gh=max(Gh,gls_Ghmin)
               Gh=min(Gh,gls_Gh0)
 c
@@ -1115,7 +1152,7 @@ c --- ------- Compute shear number.
               Gm=(gls_b0/gls_fac6-gls_b1*Gh+gls_b3*gls_fac6*(Gh**2))
      .           /(gls_b2-gls_b4*gls_fac6*Gh)
               Gm=min(Gm,Shear2(i,j,k)*Ls_lmt*Ls_lmt
-     .                  /(2.*trc(i,j,kn,itrtke)))
+     .                  /(2._r8*trc(i,j,kn,itrtke)))
 c
 c --- ------- Compute stability functions
               cff=gls_b0-gls_b1*gls_fac6*Gh+gls_b2*gls_fac6*Gm
@@ -1123,8 +1160,8 @@ c --- ------- Compute stability functions
      .           +gls_b5*gls_fac6**2*Gm*Gm
               Sm=(gls_s0-gls_s1*gls_fac6*Gh+gls_s2*gls_fac6*Gm)/cff
               Sh=(gls_s4-gls_s5*gls_fac6*Gh+gls_s6*gls_fac6*Gm)/cff
-              Sm=max(Sm,0.)
-              Sh=max(Sh,0.)
+              Sm=max(Sm,0._r8)
+              Sh=max(Sh,0._r8)
 c
 c --- ------- Relate Canuto stability to BLOM notation
               Sm=Sm*cmu_fac3/gls_cmu0**3
@@ -1137,7 +1174,7 @@ c    .           *sqrt(trc(i,j,kn,itrtke))
 c
 c             nus=Sh*ql
 c             nus=min(0.1*ql,4.05*nug0)
-              nus=min(Sh*ql,4.05*nug0)
+              nus=min(Sh*ql,4.05_r8*nug0)
 c             nus=Sh*(trc(i,j,k,itrtke)*trc(i,j,k,itrtke))
 c    .            /trc(i,j,k,itrgls)
               L_scale(i,j,k)=max(Ls_lmt,Ls_unlmt_min)
@@ -1152,26 +1189,27 @@ c --- ------- Recompute gls based on limited length scale
 c
 c --- ------- Tidally driven diapycnal mixing
               if (tdmflg.eq.1) then
-                q=.5*(tanh(4.*(abs(plat(i,j))-tdclat)/tddlat-2.)+1.)
-                q=(1.-q)*tdmls0+q*tdmls1
+                q=.5_r8*(tanh(4._r8*(abs(plat(i,j))-tdclat)/tddlat-2._r8
+     .                                   )+1.)
+                q=(1._r8-q)*tdmls0+q*tdmls1
                 if (dp(i,j,kn).lt.epsil) then
-                  vsf=exp(p(i,j,k)/q)/(q*(exp(p(i,j,kk+1)/q)-1.))
+                  vsf=exp(p(i,j,k)/q)/(q*(exp(p(i,j,kk+1)/q)-1._r8))
                 else
                   vsf=(exp(p(i,j,k+1)/q)-exp(p(i,j,k)/q))
-     .                /(dp(i,j,kn)*(exp(p(i,j,kk+1)/q)-1.))
+     .                /(dp(i,j,kn)*(exp(p(i,j,kk+1)/q)-1._r8))
                 endif
                 nut=g*tdmq*dmxeff*twedon(i,j)*bvfbot(i)*vsf/bvfsq(i,k)
               else
-                nut=0.
+                nut=0._r8
               endif
 c
 c --- ------- Diapycnal mixing when local stability is weak
               if (drho(i,k).lt.drho0) then
                 q=drho(i,k)/drho0
-                q=max(0.,1.-q*q)
+                q=max(0._r8,1._r8-q*q)
                 nuls=nuls0*q*q*q
               else
-               nuls=0.
+               nuls=0._r8
               endif
 c
 c --- ------- Total diapycnal diffusivity.
@@ -1185,7 +1223,8 @@ c --- ------- Total diapycnal diffusivity.
 c
 c --- ------- Accumulate diffusivities in a region below the first
 c --- ------- physical layer
-              q=max(0.,min(p(i,j,kfil(i,j))+dpddav,p(i,j,k+1))-p(i,j,k))
+              q=max(0._r8,min(p(i,j,kfil(i,j))+dpddav,
+     .                        p(i,j,k+1))-p(i,j,k))
               dps(i)=dps(i)+q
               dfddsu(i)=dfddsu(i)+nub*q
               dfddsl(i)=dfddsl(i)+difdia(i,j,k)*q
@@ -1208,7 +1247,7 @@ c             trc(i,j,kn,itrgls)=gls_psi_min
         enddo
         do l=1,isp(j)
         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
-          if (dps(i).gt.0.) then
+          if (dps(i).gt.0._r8) then
             dfddsu(i)=dfddsu(i)/dps(i)
             dfddsl(i)=dfddsl(i)/dps(i)
           else
@@ -1223,7 +1262,7 @@ c             trc(i,j,kn,itrgls)=gls_psi_min
             if (k.lt.kfil(i,j)) then
               if (k.gt.2.and.kfil(i,j).le.kk.and.
      .            p(i,j,min(kk,kfil(i,j)))-p(i,j,3).gt.epsil) then
-                q=.5*(p(i,j,k+1)+p(i,j,k))
+                q=.5_r8*(p(i,j,k+1)+p(i,j,k))
                 difdia(i,j,k)=((q-p(i,j,3))*dfddsl(i)
      .                        +(p(i,j,kfil(i,j))-q)*dfddsu(i))
      .                        /(p(i,j,kfil(i,j))-p(i,j,3))
@@ -1245,13 +1284,13 @@ c --- - energy originating from near-inertial waves.
               q=niwls
               if (k.eq.2.or.dp(i,j,kn).lt.epsil) then
                 vsf=exp((p(i,j,3)-p(i,j,k+1))/q)
-     .              /(q*(1.-exp((p(i,j,3)-p(i,j,kk+1))/q)))
+     .              /(q*(1._r8-exp((p(i,j,3)-p(i,j,kk+1))/q)))
               else
                 vsf=(exp((p(i,j,3)-p(i,j,k  ))/q)
      .              -exp((p(i,j,3)-p(i,j,k+1))/q))
-     .              /(dp(i,j,kn)*(1.-exp((p(i,j,3)-p(i,j,kk+1))/q)))
+     .              /(dp(i,j,kn)*(1._r8-exp((p(i,j,3)-p(i,j,kk+1))/q)))
               endif
-              nusm=g*niwgf*(1.-niwbf)*niwlf*dmxeff*idkedt(i,j)*vsf
+              nusm=g*niwgf*(1._r8-niwbf)*niwlf*dmxeff*idkedt(i,j)*vsf
      .             /(alpha0*bvfsq(i,max(k,kfil(i,j))))
               difdia(i,j,k)=difdia(i,j,k)+nusm
 #ifdef DIAG
@@ -1283,17 +1322,17 @@ c --- --- Velocity scale
           if (mols.lt.0.) then
             zeta=min(sleps,sg)*h/mols
             if (zeta.gt.zetas) then
-              phis=(1.-16.*zeta)**(-1./2.)
+              phis=(1.-16._r8*zeta)**(-1._r8/2._r8)
             else
-              phis=(as-cs*zeta)**(-1./3.)
+              phis=(as-cs*zeta)**(-1._r8/3._r8)
             endif
           else
             zeta=sg*h/mols
-            phis=1.+5.*zeta
+            phis=1._r8+5._r8*zeta
           endif
           ws=kappa*ust/phis
 c
-          difdia(i,j,1)=h*ws*sg*(1.-sg)**2
+          difdia(i,j,1)=h*ws*sg*(1._r8-sg)**2
         enddo
         enddo
 c
@@ -1307,6 +1346,9 @@ c
       call ncdims('z',kdm)
       call ncdefvar('coriop','x y',ndouble,8)
       call ncdefvar('betafp','x y',ndouble,8)
+      if (rhisctp) then
+        call ncdefvar('betatp','x y',ndouble,8)
+      endif
       call ncdefvar('kfpla','x y',ndouble,8)
       call ncdefvar('kfil','x y',ndouble,8)
       call ncdefvar('bcrrd','x y',ndouble,8)
@@ -1346,6 +1388,9 @@ c
       call ncedef  
       call ncwrtr('coriop','x y',coriop,ip,1,1.,0.,8)
       call ncwrtr('betafp','x y',betafp,ip,1,1.,0.,8)
+      if (rhisctp) then
+        call ncwrtr('betatp','x y',betatp,ip,1,1.,0.,8)
+      endif
       call ncwrtr('kfpla','x y',tmp2d_1,ip,1,1.,0.,8)
       call ncwrtr('kfil','x y',tmp2d_2,ip,1,1.,0.,8)
       call ncwrtr('bcrrd','x y',tmp2d_3,ip,1,1.,0.,8)
