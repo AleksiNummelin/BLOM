@@ -1445,6 +1445,7 @@ c
         call chksummsk(difint,ip,kk,'difint')
         call chksummsk(difiso,ip,kk,'difiso')
         call chksummsk(difdia,ip,kk,'difdia')
+        call chksummsk(betatp,ip,1,'betatp')
 #if defined(TRC) && defined(TKE)
         call chksummsk(trc(1-nbdy,1-nbdy,1,itrtke),ip,2*kk,'tke')
 #  ifdef GLS

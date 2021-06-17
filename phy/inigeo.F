@@ -148,7 +148,7 @@ c
       call xctilr(uclon, 1,4, nbdy,nbdy, halo_us)
       call xctilr(vclat, 1,4, nbdy,nbdy, halo_vs)
       call xctilr(vclon, 1,4, nbdy,nbdy, halo_vs)
-      if (expcnf.eq.'channel') then
+c      if (expcnf.eq.'channel') then
 c --- $OMP PARALLEL DO PRIVATE(i)
 c        do j=1,jj
 c          if (((j+j0).gt.1).and.((j+j0).lt.jtdm)) then
@@ -181,12 +181,12 @@ c          endif
 c        enddo
 c --- $OMP END PARALLEL DO
 c        call xctilr(betatp, 1,1, nbdy,nbdy, halo_ps)
-        call xcaget(betatp_tmp,betatp,1)
-        if (mnproc.eq.1) then
-          write (lp,*) 'betatp', betatp_tmp
-          call flush(lp)
-        endif
-      endif
+c        call xcaget(betatp_tmp,betatp,1)
+c        if (mnproc.eq.1) then
+c          write (lp,*) 'betatp', betatp_tmp
+c          call flush(lp)
+c        endif
+c      endif
       if (expcnf.eq.'cesm') then
 c$OMP PARALLEL DO PRIVATE(i)
         do j=1,jj

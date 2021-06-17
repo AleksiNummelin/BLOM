@@ -381,6 +381,7 @@ c
       call xcbcst(mommth)
       call xcbcst(eitmth)
       call xcbcst(edritp)
+      call xcbcst(rhisctp)
       call xcbcst(bmcmth)
       call xcbcst(rmpmth)
       call xcbcst(edwmth)
