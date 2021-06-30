@@ -31,6 +31,9 @@ module mod_diffusion
    private
 
    ! Variables to be set by namelist.
+   character(len = 256) :: &
+      btpfile   ! file defining the topographic beta parameter [cm-1 s-1]
+
    real(r8) :: &
       egc, &    ! The parameter 'c' in the Eden and Greatbatch (2008)
                 ! parameterization [].
@@ -109,7 +112,7 @@ module mod_diffusion
              difint, difiso, difdia, difmxp, difmxq, difwgt, &
              umfltd, vmfltd, utfltd, vtfltd, utflld, vtflld, &
              usfltd, vsfltd, usflld, vsflld, &
-             inivar_diffusion
+             inivar_diffusion, btpfile
 
 contains
 

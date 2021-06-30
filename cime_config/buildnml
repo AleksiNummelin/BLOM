@@ -110,6 +110,8 @@ set CWBDLS   = 25.
 set MOMMTH   = "'enscon'"
 set EITMTH   = "'gm'"
 set EDRITP   = "'large scale'"
+set RHISCTP  = .false.
+set BTPFILE  = "'unset'"
 set BMCMTH   = "'uc'"
 set RMPMTH   = "'eitvel'"
 set EDWMTH   = "'smooth'"
@@ -679,6 +681,7 @@ else if ($OCN_GRID == tnx1v4) then
   set CCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/chlorophyll_concentration_tnx1v4_20170608.nc'"
   set SCFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/sss_clim_core_tnx1v4_20170604.nc'"
   set FEDEPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/dustdep_mhw2006_tnx1v4_20171107.nc'"
+  set BTPFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/topo_beta_tnx1v4_20170622.nc'"
   if ($BLOM_RIVER_NUTRIENTS == TRUE) then
     set RIVINFILE = "'$DIN_LOC_ROOT/ocn/blom/bndcon/river_nutrients_GNEWS2000_tnx1v4_20170820.nc'"
   else
@@ -898,6 +901,8 @@ cat >! $RUNDIR/ocn_in$inststr << EOF
   MOMMTH   = $MOMMTH
   EITMTH   = $EITMTH
   EDRITP   = $EDRITP
+  RHISCTP  = $RHISCTP
+  BTPFILE  = $BTPFILE
   BMCMTH   = $BMCMTH
   RMPMTH   = $RMPMTH
   EDWMTH   = $EDWMTH

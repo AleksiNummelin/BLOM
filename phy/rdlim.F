@@ -48,7 +48,8 @@ c
       use mod_swabs, only: swamth, jwtype, chlopt, ccfile
       use mod_diffusion, only: egc, eggam, eglsmn, egmndf, egmxdf,
      .                         egidfq, ri0, bdmc1, bdmc2, tkepf, bdmtyp,
-     .                         edsprs, eitmth, edritp, edwmth, rhisctp
+     .                         edsprs, eitmth, edritp, edwmth, rhisctp,
+     .                         btpfile
       use mod_mxlayr, only: rm0, rm5, ce, mlrttp
       use mod_niw, only: niwgf, niwbf, niwlf
       use mod_tidaldissip, only: tdfile
@@ -70,7 +71,7 @@ c
      .  grfile,icfile,pref,baclin,batrop,
      .  mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo,
      .  vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls,
-     .  mommth,eitmth,edritp,rhisctp,bmcmth,rmpmth,edwmth,mlrttp,
+     .  mommth,eitmth,edritp,rhisctp,btpfile,bmcmth,rmpmth,edwmth,mlrttp,
      .  edsprs,egc,eggam,eglsmn,egmndf,egmxdf,egidfq,ri0,
      .  rm0,rm5,ce,bdmtyp,bdmc1,bdmc2,tdfile,tkepf,niwgf,niwbf,niwlf,
      .  swamth,jwtype,chlopt,ccfile,
@@ -137,6 +138,7 @@ c --- - print limits namelist to stdout
         write (lp,*) 'EITMTH ',trim(EITMTH)
         write (lp,*) 'EDRITP ',trim(EDRITP)
         write (lp,*) 'RHISCTP ',RHISCTP
+        write (lp,*) 'BTPFILE ',trim(BTPFILE)
         write (lp,*) 'BMCMTH ',trim(BMCMTH)
         write (lp,*) 'RMPMTH ',trim(RMPMTH)
         write (lp,*) 'EDWMTH ',trim(EDWMTH)
@@ -382,6 +384,7 @@ c
       call xcbcst(eitmth)
       call xcbcst(edritp)
       call xcbcst(rhisctp)
+      call xcbcst(btpfile)
       call xcbcst(bmcmth)
       call xcbcst(rmpmth)
       call xcbcst(edwmth)

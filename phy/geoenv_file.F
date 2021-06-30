@@ -27,12 +27,13 @@ c
       use mod_config, only: inst_suffix
       use mod_constants, only: rearth, pi, radian
       use mod_xc
+      use mod_diffusion, only: rhisctp, btpfile
       use mod_grid, only: grfile, qclon, qclat, pclon, pclat, uclon,
      .                    uclat, vclon, vclat, scqx, scqy, scpx, scpy,
      .                    scux, scuy, scvx, scvy, scq2, scp2, scu2,
      .                    scv2, qlon, qlat, plon, plat, ulon, ulat,
      .                    vlon, vlat, depths, corioq, coriop, betafp,
-     .                    angle, cosang, sinang, nwp
+     .                    angle, cosang, sinang, nwp, betatp
       use netcdf
 c
       implicit none
@@ -699,6 +700,40 @@ c
         endif
       endif
 c
+c --- Read topographic beta if needed
+c
+c --- - open netcdf file
+      if (rhisctp) then
+        if (mnproc.eq.1) then
+          status=nf90_open(btpfile,nf90_nowrite,ncid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(4a)') ' nf90_open: ',trim(grfile),': ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        if (mnproc.eq.1) then
+          status=nf90_inq_varid(ncid,'topo_beta',varid)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_inq_varid: topo_beta: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        if (mnproc.eq.1) then
+          status=nf90_get_var(ncid,varid,tmpg)
+          if (status.ne.nf90_noerr) then
+            write(lp,'(2a)') ' nf90_get_var: topo_beta: ',
+     .                       nf90_strerror(status)
+            call xchalt('(geoenv_file)')
+                   stop '(geoenv_file)'
+          endif
+        endif
+        call xcaput(tmpg,betatp,1)
+      endif
+
 c --- ------------------------------------------------------------------
 c --- Apply channel width modifications if specified in namelist
 c --- ------------------------------------------------------------------
@@ -816,6 +851,7 @@ c
           corioq(i,j)=sin(qlat(i,j)/radian)*4.*pi/86164.
           coriop(i,j)=sin(plat(i,j)/radian)*4.*pi/86164.
           betafp(i,j)=cos(plat(i,j)/radian)*4.*pi/(86164.*rearth)
+          betatp(i,j)=betatp(i,j)*1.e-2
 c
         enddo
       enddo
