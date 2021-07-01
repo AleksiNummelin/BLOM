@@ -882,7 +882,7 @@ c
               endif
 c -- ---  Apply suppression to Redi only
               difiso(i,j,1)=min(difmxp(i,j),egmxdf,
-     .                          max(egmndf,dfints(i)
+     .                          max(egmndf,dfints(i)*egidfq
      .                              *difwgt(i,j)*esfac/dps(i)))
 c --- --- Interface diffusivity without suppression
               difint(i,j,1)=min(difmxp(i,j),egmxdf,
@@ -934,7 +934,7 @@ c
 c
 
                 difiso(i,j,k)=min(difmxp(i,j),egmxdf,
-     .                            max(egmndf,dfints(i)
+     .                            max(egmndf,dfints(i)*egidfq
      .                                *difwgt(i,j)*esfac/dps(i)))
                 difint(i,j,k)=min(difmxp(i,j),egmxdf,
      .                            max(egmndf,dfints(i)
